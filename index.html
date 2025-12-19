@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Student Anonymous Forum</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        /* Simple clean styling */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9; }
+        .hidden { display: none; }
+        input, textarea, button { width: 100%; padding: 10px; margin-top: 10px; box-sizing: border-box; }
+        button { background: #333; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { background: #555; }
+        .post { background: white; border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px; }
+        .reply { margin-top: 10px; padding: 10px; background: #f0f0f0; font-size: 0.9em; border-left: 3px solid #ccc; }
+        .meta { color: #888; font-size: 0.8em; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+    <div id="login-page">
+        <h2>🔒 Verify Student Email</h2>
+        <p>Enter your university email to access the anonymous board.</p>
+        <input type="email" id="email" placeholder="student@university.edu">
+        <button onclick="requestOtp()">Get Verification Code</button>
+        
+        <div id="otp-section" class="hidden">
+            <input type="text" id="otp" placeholder="Enter 6-digit code">
+            <button onclick="verifyOtp()">Enter Forum</button>
+        </div>
+    </div>
+
+    <div id="main-page" class="hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2>📢 Anonymous Board</h2>
+            <button onclick="logout()" style="width:auto; background:red; font-size:12px;">Logout</button>
+        </div>
+        
+        <input type="text" id="search" placeholder="🔍 Search topics..." onkeyup="loadPosts()">
+        
+        <div style="margin-top:20px; border-top:2px solid #333; padding-top:10px;">
+            <textarea id="new-post-content" rows="3" placeholder="What's on your mind? (Anonymous)"></textarea>
+            <button onclick="createPost()">Post</button>
+        </div>
+        
+        <hr>
+        <div id="posts-container">Loading posts...</div>
+    </div>
+
+    <script>
+        // YOUR WORKER URL
+        const API_URL = "https://dry-haze-494a.agiri2016.workers.dev/api";
+        
+        let token = localStorage.getItem("anon_token");
+
+        if (token) { showMainPage(); }
+
+        async function requestOtp() {
+            const email = document.getElementById("email").value;
+            if(!email) return alert("Please enter email");
+            
+            const btn = event.target; btn.innerText = "Sending...";
+            
+            const res = await fetch(`${API_URL}/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email })
+            });
+
+            if(res.ok) {
+                document.getElementById("otp-section").classList.remove("hidden");
+                btn.innerText = "Code Sent!";
+                alert("Code sent! Check your inbox (and spam).");
+            } else {
+                alert("Error: " + await res.text());
+                btn.innerText = "Get Verification Code";
+            }
+        }
+
+        async function verifyOtp() {
+            const email = document.getElementById("email").value;
+            const otp = document.getElementById("otp").value;
+            const res = await fetch(`${API_URL}/verify`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, otp })
+            });
+            
+            if (res.ok) {
+                const data = await res.json();
+                token = data.token;
+                localStorage.setItem("anon_token", token);
+                showMainPage();
+            } else {
+                alert("Invalid Code");
+            }
+        }
+
+        function showMainPage() {
+            document.getElementById("login-page").classList.add("hidden");
+            document.getElementById("main-page").classList.remove("hidden");
+            loadPosts();
+        }
+
+        function logout() {
+            localStorage.removeItem("anon_token");
+            location.reload();
+        }
+
+        async function loadPosts() {
+            const search = document.getElementById("search").value;
+            const res = await fetch(`${API_URL}/posts?search=${search}`);
+            const posts = await res.json();
+            
+            const container = document.getElementById("posts-container");
+            container.innerHTML = posts.map(post => `
+                <div class="post">
+                    <div class="meta">User ${post.random_user_id}</div>
+                    <div>${post.content}</div>
+                    <div id="replies-${post.id}">
+                        ${post.replies ? post.replies.map(r => `<div class="reply"><strong>User ${r.random_user_id}:</strong> ${r.content}</div>`).join('') : ''}
+                    </div>
+                    <div style="display:flex; gap:5px; margin-top:10px;">
+                        <input type="text" id="reply-input-${post.id}" placeholder="Reply..." style="margin:0;">
+                        <button onclick="reply(${post.id})" style="width:80px; margin:0;">Reply</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function createPost() {
+            const content = document.getElementById("new-post-content").value;
+            if(!content) return;
+            
+            await fetch(`${API_URL}/posts`, {
+                method: "POST",
+                headers: { "Authorization": token, "Content-Type": "application/json" },
+                body: JSON.stringify({ content })
+            });
+            document.getElementById("new-post-content").value = "";
+            loadPosts();
+        }
+
+        async function reply(postId) {
+            const content = document.getElementById(`reply-input-${postId}`).value;
+            if(!content) return;
+
+            await fetch(`${API_URL}/reply`, {
+                method: "POST",
+                headers: { "Authorization": token, "Content-Type": "application/json" },
+                body: JSON.stringify({ postId, content })
+            });
+            loadPosts();
+        }
+    </script>
+</body>
+</html>
