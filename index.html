@@ -31,14 +31,14 @@
 
     <div id="main-page" class="hidden">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h2>📢 Anonymous Board</h2>
+            <h2>📢 Forum Board</h2>
             <button onclick="logout()" style="width:auto; background:red; font-size:12px;">Logout</button>
         </div>
         
         <input type="text" id="search" placeholder="🔍 Search topics..." onkeyup="loadPosts()">
         
         <div style="margin-top:20px; border-top:2px solid #333; padding-top:10px;">
-            <textarea id="new-post-content" rows="3" placeholder="What's on your mind? (Anonymous)"></textarea>
+            <textarea id="new-post-content" rows="3" placeholder="What's on your mind?"></textarea>
             <button onclick="createPost()">Post</button>
         </div>
         
