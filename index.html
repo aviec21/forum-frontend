@@ -203,13 +203,40 @@
         }
 
         async function vote(replyId, type) {
-            await fetch(`${API_URL}/vote`, {
+            // 1. Optimistic UI: Add +1 immediately
+            const btnId = type === 'like' ? `like-btn-${replyId}` : `dislike-btn-${replyId}`;
+            const btn = document.getElementById(btnId);
+            
+            let originalText = "";
+            if (btn) {
+                originalText = btn.innerText; // Save old text in case we need to undo
+                const parts = originalText.split(" "); 
+                const icon = parts[0];
+                const currentCount = parseInt(parts[1]) || 0;
+                btn.innerText = `${icon} ${currentCount + 1}`;
+                btn.disabled = true; // Temporary disable
+            }
+
+            // 2. Send to Server (WITH TOKEN)
+            const res = await fetch(`${API_URL}/vote`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Authorization": token, // <--- IMPORTANT: Send User ID
+                    "Content-Type": "application/json" 
+                },
                 body: JSON.stringify({ replyId, type })
             });
-            // Don't reload entire page to keep position, just let the count sit for now
+
+            // 3. If server says "Already Voted", undo the UI change
+            if (res.status === 409) {
+                if (btn) {
+                    btn.innerText = originalText; // Revert to old number
+                    // Optional: Alert the user
+                    // alert("You can only vote once!");
+                }
+            }
         }
+
 
         // --- RENDERERS ---
 
@@ -230,8 +257,8 @@
                             <div class="reply-item">
                                 <span style="font-weight:bold; color:#4b5563;">User ${r.random_user_id}:</span> ${r.content}
                                 <div class="vote-row">
-                                    <button class="vote-btn" onclick="vote(${r.id}, 'like')">👍 ${r.likes || 0}</button>
-                                    <button class="vote-btn" onclick="vote(${r.id}, 'dislike')">👎 ${r.dislikes || 0}</button>
+                                    <button id="like-btn-${r.id}" class="vote-btn" onclick="vote(${r.id}, 'like')">👍 ${r.likes || 0}</button>
+                                    <button id="dislike-btn-${r.id}" class="vote-btn" onclick="vote(${r.id}, 'dislike')">👎 ${r.dislikes || 0}</button>
                                 </div>
                             </div>
                         `).join('') : '<div style="font-size:0.8em; color:#999; margin-bottom:10px;">No replies yet</div>'}
@@ -261,7 +288,6 @@
                 list.innerHTML = posts.map((post, index) => `
                     <a href="?viewPost=${post.id}" target="_blank" class="top-post-item">
                         <strong>#${index + 1}</strong> ${post.content} 
-                        <span style="color:#2563eb;">(${post.score})</span>
                     </a>
                 `).join('');
             } catch(e) {
