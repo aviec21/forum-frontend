@@ -1,130 +1,186 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Student Anonymous Forum</title>
+    <title>Campus Forum</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        /* Simple clean styling */
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #f9f9f9; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; background: #f0f2f5; }
+        .container { max-width: 1000px; margin: 0 auto; display: flex; gap: 20px; padding: 20px; }
+        
+        /* LAYOUT: Left Main, Right Sidebar */
+        .main-content { flex: 3; } /* Takes 75% width */
+        .sidebar { flex: 1; background: white; padding: 15px; border-radius: 8px; height: fit-content; position: sticky; top: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        
+        /* TABS */
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { flex: 1; padding: 10px; border: none; background: #ddd; cursor: pointer; font-weight: bold; border-radius: 5px; }
+        .tab-btn.active { background: #333; color: white; }
+
+        /* POSTS */
+        .post { background: white; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .meta { color: #666; font-size: 0.8em; margin-bottom: 8px; display: flex; justify-content: space-between; }
+        
+        /* VOTING */
+        .actions { margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; display: flex; gap: 15px; align-items: center; }
+        .vote-btn { background: none; border: 1px solid #ccc; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8em; }
+        .vote-btn:hover { background: #eee; }
+
+        /* SIDEBAR ITEMS */
+        .top-post-item { border-bottom: 1px solid #eee; padding: 8px 0; font-size: 0.9em; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #333; text-decoration: none; display: block; }
+        .top-post-item:hover { color: blue; }
+
+        /* UTILS */
         .hidden { display: none; }
-        input, textarea, button { width: 100%; padding: 10px; margin-top: 10px; box-sizing: border-box; }
-        button { background: #333; color: white; border: none; cursor: pointer; font-weight: bold; }
-        button:hover { background: #555; }
-        .post { background: white; border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 5px; }
-        .reply { margin-top: 10px; padding: 10px; background: #f0f0f0; font-size: 0.9em; border-left: 3px solid #ccc; }
-        .meta { color: #888; font-size: 0.8em; margin-bottom: 5px; }
+        input, textarea, button.primary { width: 100%; padding: 10px; margin-top: 10px; box-sizing: border-box; }
+        button.primary { background: #333; color: white; border: none; font-weight: bold; cursor: pointer; }
+        .reply-box { margin-top: 10px; background: #f9f9f9; padding: 10px; border-left: 3px solid #ccc; font-size: 0.9em; }
     </style>
 </head>
 <body>
 
-    <div id="login-page">
-        <h2>🔒 Verify Student Email</h2>
-        <p>Enter your university email to access the anonymous board.</p>
-        <input type="email" id="email" placeholder="Your official College email id">
-        <button onclick="requestOtp()">Get Verification Code</button>
-        
+    <div id="login-page" style="max-width:400px; margin: 50px auto; background:white; padding:30px; border-radius:10px; text-align:center;">
+        <h2>🔒 Campus Login</h2>
+        <input type="email" id="email" placeholder="student@iimidr.ac.in">
+        <button class="primary" onclick="requestOtp()">Get Verification Code</button>
         <div id="otp-section" class="hidden">
             <input type="text" id="otp" placeholder="Enter 6-digit code">
-            <button onclick="verifyOtp()">Enter Forum</button>
+            <button class="primary" onclick="verifyOtp()">Enter Forum</button>
         </div>
     </div>
 
     <div id="main-page" class="hidden">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h2>📢 Forum Board</h2>
-            <button onclick="logout()" style="width:auto; background:red; font-size:12px;">Logout</button>
+        <div class="container">
+            
+            <div class="main-content">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <h2 id="page-title">📢 Campus Board</h2>
+                    <button onclick="logout()" style="background:red; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Logout</button>
+                </div>
+
+                <div class="tabs">
+                    <button id="btn-serious" class="tab-btn active" onclick="switchCategory('serious')">Serious 🎓</button>
+                    <button id="btn-bakwaas" class="tab-btn" onclick="switchCategory('bakwaas')">Bakwaas 🤪</button>
+                </div>
+
+                <div style="background:white; padding:15px; border-radius:8px; margin-bottom:20px;">
+                    <textarea id="new-post-content" rows="3" placeholder="Write something anonymous..."></textarea>
+                    <button class="primary" onclick="createPost()">Post to <span id="current-cat-name">Serious</span></button>
+                </div>
+
+                <div id="posts-container">Loading...</div>
+            </div>
+
+            <div class="sidebar">
+                <h3>🏆 Top 10</h3>
+                <div id="top-posts-list">Loading...</div>
+            </div>
+
         </div>
-        
-        <input type="text" id="search" placeholder="🔍 Search topics..." onkeyup="loadPosts()">
-        
-        <div style="margin-top:20px; border-top:2px solid #333; padding-top:10px;">
-            <textarea id="new-post-content" rows="3" placeholder="What's on your mind?"></textarea>
-            <button onclick="createPost()">Post</button>
-        </div>
-        
-        <hr>
-        <div id="posts-container">Loading posts...</div>
     </div>
 
     <script>
-        // YOUR WORKER URL
-        const API_URL = "https://dry-haze-494a.agiri2016.workers.dev/api";
-        
+        const API_URL = "https://dry-haze-494a.agiri2016.workers.dev/api"; 
+
         let token = localStorage.getItem("anon_token");
+        let currentCategory = "serious";
 
-        if (token) { showMainPage(); }
+        // Check for "Post View" in URL (e.g., ?viewPost=5)
+        const urlParams = new URLSearchParams(window.location.search);
+        const singlePostId = urlParams.get('viewPost');
 
-        async function requestOtp() {
-            const email = document.getElementById("email").value;
-            if(!email) return alert("Please enter email");
-            
-            const btn = event.target; btn.innerText = "Sending...";
-            
-            const res = await fetch(`${API_URL}/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email })
-            });
-
-            if(res.ok) {
-                document.getElementById("otp-section").classList.remove("hidden");
-                btn.innerText = "Code Sent!";
-                alert("Code sent! Check your inbox (and spam).");
-            } else {
-                alert("Error: " + await res.text());
-                btn.innerText = "Get Verification Code";
-            }
-        }
-
-        async function verifyOtp() {
-            const email = document.getElementById("email").value;
-            const otp = document.getElementById("otp").value;
-            const res = await fetch(`${API_URL}/verify`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, otp })
-            });
-            
-            if (res.ok) {
-                const data = await res.json();
-                token = data.token;
-                localStorage.setItem("anon_token", token);
-                showMainPage();
-            } else {
-                alert("Invalid Code");
-            }
-        }
-
-        function showMainPage() {
+        if (token) {
             document.getElementById("login-page").classList.add("hidden");
             document.getElementById("main-page").classList.remove("hidden");
-            loadPosts();
+            if (singlePostId) {
+                loadSinglePost(singlePostId);
+            } else {
+                loadPosts();
+            }
+            loadTop10();
         }
 
-        function logout() {
-            localStorage.removeItem("anon_token");
-            location.reload();
+        // --- FUNCTIONS ---
+
+        function switchCategory(cat) {
+            currentCategory = cat;
+            document.getElementById("btn-serious").className = cat === 'serious' ? 'tab-btn active' : 'tab-btn';
+            document.getElementById("btn-bakwaas").className = cat === 'bakwaas' ? 'tab-btn active' : 'tab-btn';
+            document.getElementById("current-cat-name").innerText = cat === 'serious' ? "Serious" : "Bakwaas";
+            
+            // Clear single post view if active
+            if(singlePostId) window.location.href = window.location.pathname; 
+            
+            loadPosts();
+            loadTop10();
         }
 
         async function loadPosts() {
-            const search = document.getElementById("search").value;
-            const res = await fetch(`${API_URL}/posts?search=${search}`);
+            const res = await fetch(`${API_URL}/posts?category=${currentCategory}`);
             const posts = await res.json();
+            renderPosts(posts);
+        }
+
+        async function loadSinglePost(id) {
+            // Hide tabs and create box when viewing single post
+            document.querySelector(".tabs").classList.add("hidden");
+            document.getElementById("page-title").innerText = "👀 Viewing Single Post";
             
+            const res = await fetch(`${API_URL}/posts?id=${id}`);
+            const posts = await res.json();
+            renderPosts(posts);
+        }
+
+        function renderPosts(posts) {
             const container = document.getElementById("posts-container");
+            if (posts.length === 0) {
+                container.innerHTML = "<p>No posts yet in this category.</p>";
+                return;
+            }
             container.innerHTML = posts.map(post => `
                 <div class="post">
-                    <div class="meta">User ${post.random_user_id}</div>
-                    <div>${post.content}</div>
-                    <div id="replies-${post.id}">
-                        ${post.replies ? post.replies.map(r => `<div class="reply"><strong>User ${r.random_user_id}:</strong> ${r.content}</div>`).join('') : ''}
+                    <div class="meta">
+                        <span>User ${post.random_user_id}</span>
+                        <span>${new Date(post.created_at * 1000).toLocaleDateString()}</span>
                     </div>
-                    <div style="display:flex; gap:5px; margin-top:10px;">
-                        <input type="text" id="reply-input-${post.id}" placeholder="Reply..." style="margin:0;">
-                        <button onclick="reply(${post.id})" style="width:80px; margin:0;">Reply</button>
+                    <div style="font-size:1.1em;">${post.content}</div>
+                    
+                    <div class="actions">
+                        <button class="vote-btn" onclick="vote(${post.id}, 'like')">👍 ${post.likes || 0}</button>
+                        <button class="vote-btn" onclick="vote(${post.id}, 'dislike')">👎 ${post.dislikes || 0}</button>
+                        <span style="color:#ccc; margin-left:auto;">${post.replies ? post.replies.length : 0} replies</span>
+                    </div>
+
+                    <div style="margin-top:15px; background:#f9f9f9; padding:10px; border-radius:5px;">
+                        ${post.replies ? post.replies.map(r => `<div style="border-bottom:1px solid #ddd; padding:5px 0; font-size:0.9em;"><strong>User ${r.random_user_id}:</strong> ${r.content}</div>`).join('') : ''}
+                        <div style="display:flex; gap:5px; margin-top:10px;">
+                            <input type="text" id="reply-input-${post.id}" placeholder="Reply..." style="margin:0; background:white;">
+                            <button onclick="reply(${post.id})" style="width:80px; margin:0; background:#555; color:white; border:none;">Reply</button>
+                        </div>
                     </div>
                 </div>
             `).join('');
+        }
+
+        async function loadTop10() {
+            const res = await fetch(`${API_URL}/top-posts?category=${currentCategory}`);
+            const posts = await res.json();
+            
+            const container = document.getElementById("top-posts-list");
+            container.innerHTML = posts.map((post, index) => `
+                <a href="?viewPost=${post.id}" target="_blank" class="top-post-item">
+                    <strong>#${index + 1}</strong> ${post.content}
+                </a>
+            `).join('');
+        }
+
+        async function vote(postId, type) {
+            // Optimistic UI update (update number immediately)
+            loadPosts(); 
+            await fetch(`${API_URL}/vote`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ postId, type })
+            });
         }
 
         async function createPost() {
@@ -134,10 +190,11 @@
             await fetch(`${API_URL}/posts`, {
                 method: "POST",
                 headers: { "Authorization": token, "Content-Type": "application/json" },
-                body: JSON.stringify({ content })
+                body: JSON.stringify({ content, category: currentCategory })
             });
             document.getElementById("new-post-content").value = "";
             loadPosts();
+            loadTop10();
         }
 
         async function reply(postId) {
@@ -151,6 +208,31 @@
             });
             loadPosts();
         }
+
+        // --- AUTH FUNCTIONS (Same as before) ---
+        async function requestOtp() {
+            const email = document.getElementById("email").value;
+            if(!email) return alert("Enter email");
+            
+            const res = await fetch(`${API_URL}/login`, { method: "POST", body: JSON.stringify({ email }) });
+            if(res.ok) {
+                document.getElementById("otp-section").classList.remove("hidden");
+                alert("Code sent!");
+            } else { alert("Error/Invalid Domain"); }
+        }
+
+        async function verifyOtp() {
+            const email = document.getElementById("email").value;
+            const otp = document.getElementById("otp").value;
+            const res = await fetch(`${API_URL}/verify`, { method: "POST", body: JSON.stringify({ email, otp }) });
+            if (res.ok) {
+                const data = await res.json();
+                localStorage.setItem("anon_token", data.token);
+                location.reload(); 
+            } else { alert("Invalid Code"); }
+        }
+
+        function logout() { localStorage.removeItem("anon_token"); location.reload(); }
     </script>
 </body>
 </html>
