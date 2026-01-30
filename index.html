@@ -6,54 +6,30 @@
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; background: #f0f2f5; }
         .container { max-width: 1000px; margin: 0 auto; display: flex; gap: 20px; padding: 20px; }
+        .main-content { flex: 3; } 
+        .sidebar { flex: 1; background: white; padding: 15px; border-radius: 8px; height: fit-content; position: sticky; top: 20px; }
         
-        /* LAYOUT: Left Main, Right Sidebar */
-        .main-content { flex: 3; } /* Takes 75% width */
-        .sidebar { flex: 1; background: white; padding: 15px; border-radius: 8px; height: fit-content; position: sticky; top: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        
-        /* TABS */
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
         .tab-btn { flex: 1; padding: 10px; border: none; background: #ddd; cursor: pointer; font-weight: bold; border-radius: 5px; }
         .tab-btn.active { background: #333; color: white; }
 
-        /* POSTS */
         .post { background: white; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .meta { color: #666; font-size: 0.8em; margin-bottom: 8px; display: flex; justify-content: space-between; }
+        .meta { color: #666; font-size: 0.8em; margin-bottom: 8px; }
         
-        /* VOTING */
-        .actions { margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; display: flex; gap: 15px; align-items: center; }
-        .vote-btn { background: none; border: 1px solid #ccc; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8em; }
-        .vote-btn:hover { background: #eee; }
+        /* Updated Reply/Vote Styles */
+        .reply-item { border-top: 1px solid #eee; padding: 8px 0; margin-top: 5px; font-size: 0.95em; }
+        .reply-actions { display: flex; gap: 10px; margin-top: 4px; font-size: 0.8em; color: #555; }
+        .vote-btn { background: none; border: none; cursor: pointer; color: #555; padding: 0; }
+        .vote-btn:hover { color: blue; }
 
-        /* SIDEBAR ITEMS */
-        .top-post-item { border-bottom: 1px solid #eee; padding: 8px 0; font-size: 0.9em; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #333; text-decoration: none; display: block; }
-        .top-post-item:hover { color: blue; }
-
-        /* UTILS */
+        .top-post-item { border-bottom: 1px solid #eee; padding: 8px 0; font-size: 0.9em; cursor: pointer; display: block; text-decoration: none; color: #333;}
+        
+        /* Inputs & Buttons */
+        input, textarea { width: 100%; padding: 10px; margin-top: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        .post-btn { background: #2563eb; color: white; border: none; padding: 6px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .load-more-btn { width: 100%; padding: 10px; background: #ddd; border: none; margin-top: 10px; cursor: pointer; font-weight: bold; }
+        
         .hidden { display: none; }
-/* 1. Keep the text box full width */
-        input, textarea { 
-            width: 100%; 
-            padding: 10px; 
-            margin-top: 10px; 
-            box-sizing: border-box; 
-            border: 1px solid #ccc; 
-            border-radius: 4px; 
-        }
-
-        /* 2. New style for the small Blue Post Button */
-        .post-btn { 
-            background: #2563eb; /* Blue color */
-            color: white; 
-            border: none; 
-            padding: 6px 20px;   /* Small size */
-            border-radius: 4px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            font-size: 0.9em;
-        }
-        .post-btn:hover { background: #1d4ed8; }
-        .reply-box { margin-top: 10px; background: #f9f9f9; padding: 10px; border-left: 3px solid #ccc; font-size: 0.9em; }
     </style>
 </head>
 <body>
@@ -61,10 +37,10 @@
     <div id="login-page" style="max-width:400px; margin: 50px auto; background:white; padding:30px; border-radius:10px; text-align:center;">
         <h2>🔒 Campus Login</h2>
         <input type="email" id="email" placeholder="student@iimidr.ac.in">
-        <button class="primary" onclick="requestOtp()">Get Verification Code</button>
+        <button class="post-btn" style="width:100%; margin-top:10px;" onclick="requestOtp()">Get Code</button>
         <div id="otp-section" class="hidden">
-            <input type="text" id="otp" placeholder="Enter 6-digit code">
-            <button class="primary" onclick="verifyOtp()">Enter Forum</button>
+            <input type="text" id="otp" placeholder="Enter Code">
+            <button class="post-btn" style="width:100%; margin-top:10px;" onclick="verifyOtp()">Enter Forum</button>
         </div>
     </div>
 
@@ -72,9 +48,9 @@
         <div class="container">
             
             <div class="main-content">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <h2 id="page-title">📢 Campus Board</h2>
-                    <button onclick="logout()" style="background:red; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Logout</button>
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    <h2>📢 Campus Board</h2>
+                    <input type="text" id="search-box" placeholder="Search topics..." style="width:200px; margin:0;" onkeydown="handleSearch(event)">
                 </div>
 
                 <div class="tabs">
@@ -83,31 +59,34 @@
                 </div>
 
                 <div style="background:white; padding:15px; border-radius:8px; margin-bottom:20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                    <textarea id="new-post-content" rows="3" placeholder="Write something anonymous..."></textarea>
-    
+                    <textarea id="new-post-content" rows="3" placeholder="Write something..."></textarea>
                     <div style="display:flex; justify-content: flex-end; margin-top:10px;">
-                        <button class="post-btn" onclick="createPost()">Post to <span id="current-cat-name">Serious</span></button>
+                        <button class="post-btn" onclick="createPost()">Post</button>
                     </div>
                 </div>
 
-                <div id="posts-container">Loading...</div>
+                <div id="posts-container"></div>
+                <button id="load-more-btn" class="load-more-btn hidden" onclick="loadMore()">Load More</button>
             </div>
 
             <div class="sidebar">
-                <h3>🏆 Top 10</h3>
+                <h3>🔥 Top 10 (By Replies)</h3>
                 <div id="top-posts-list">Loading...</div>
+                <button onclick="logout()" style="margin-top:20px; width:100%; background:red; color:white; border:none; padding:5px;">Logout</button>
             </div>
 
         </div>
     </div>
 
     <script>
-        const API_URL = "https://dry-haze-494a.agiri2016.workers.dev/api"; 
+        const API_URL = "https://your-worker-url.workers.dev/api"; // UPDATE THIS
 
         let token = localStorage.getItem("anon_token");
         let currentCategory = "serious";
+        let currentOffset = 0;
+        let currentSearch = "";
 
-        // Check for "Post View" in URL (e.g., ?viewPost=5)
+        // Check URL params
         const urlParams = new URLSearchParams(window.location.search);
         const singlePostId = urlParams.get('viewPost');
 
@@ -117,37 +96,67 @@
             if (singlePostId) {
                 loadSinglePost(singlePostId);
             } else {
-                loadPosts();
+                initialLoad();
             }
             loadTop10();
         }
 
-        // --- FUNCTIONS ---
+        function handleSearch(e) {
+            if(e.key === 'Enter') {
+                currentSearch = e.target.value;
+                initialLoad(); // Reset list and search
+            }
+        }
 
         function switchCategory(cat) {
             currentCategory = cat;
+            currentSearch = ""; // Clear search when switching tabs
+            document.getElementById("search-box").value = "";
             document.getElementById("btn-serious").className = cat === 'serious' ? 'tab-btn active' : 'tab-btn';
             document.getElementById("btn-bakwaas").className = cat === 'bakwaas' ? 'tab-btn active' : 'tab-btn';
-            document.getElementById("current-cat-name").innerText = cat === 'serious' ? "Serious" : "Bakwaas";
             
-            // Clear single post view if active
             if(singlePostId) window.location.href = window.location.pathname; 
-            
-            loadPosts();
+            initialLoad();
             loadTop10();
         }
 
-        async function loadPosts() {
-            const res = await fetch(`${API_URL}/posts?category=${currentCategory}`);
+        // RESET and Load First 5
+        function initialLoad() {
+            currentOffset = 0;
+            document.getElementById("posts-container").innerHTML = ""; // Clear old posts
+            fetchPosts();
+        }
+
+        // Append Next 5
+        function loadMore() {
+            currentOffset += 5;
+            fetchPosts();
+        }
+
+        async function fetchPosts() {
+            let url = `${API_URL}/posts?offset=${currentOffset}`;
+            
+            if(currentSearch) {
+                url += `&search=${encodeURIComponent(currentSearch)}`;
+            } else {
+                url += `&category=${currentCategory}`;
+            }
+
+            const res = await fetch(url);
             const posts = await res.json();
             renderPosts(posts);
+
+            // Hide "Load More" if we got fewer than 5 posts (end of list)
+            if(posts.length < 5) {
+                document.getElementById("load-more-btn").classList.add("hidden");
+            } else {
+                document.getElementById("load-more-btn").classList.remove("hidden");
+            }
         }
 
         async function loadSinglePost(id) {
-            // Hide tabs and create box when viewing single post
             document.querySelector(".tabs").classList.add("hidden");
-            document.getElementById("page-title").innerText = "👀 Viewing Single Post";
-            
+            document.getElementById("load-more-btn").classList.add("hidden");
             const res = await fetch(`${API_URL}/posts?id=${id}`);
             const posts = await res.json();
             renderPosts(posts);
@@ -155,95 +164,85 @@
 
         function renderPosts(posts) {
             const container = document.getElementById("posts-container");
-            if (posts.length === 0) {
-                container.innerHTML = "<p>No posts yet in this category.</p>";
-                return;
-            }
-            container.innerHTML = posts.map(post => `
+            const html = posts.map(post => `
                 <div class="post">
-                    <div class="meta">
-                        <span>User ${post.random_user_id}</span>
-                        <span>${new Date(post.created_at * 1000).toLocaleDateString()}</span>
-                    </div>
-                    <div style="font-size:1.1em;">${post.content}</div>
+                    <div class="meta">User ${post.random_user_id} • ${new Date(post.created_at * 1000).toLocaleDateString()}</div>
+                    <div style="font-size:1.1em; margin-bottom:10px;">${post.content}</div>
                     
-                    <div class="actions">
-                        <button class="vote-btn" onclick="vote(${post.id}, 'like')">👍 ${post.likes || 0}</button>
-                        <button class="vote-btn" onclick="vote(${post.id}, 'dislike')">👎 ${post.dislikes || 0}</button>
-                        <span style="color:#ccc; margin-left:auto;">${post.replies ? post.replies.length : 0} replies</span>
-                    </div>
-
-                    <div style="margin-top:15px; background:#f9f9f9; padding:10px; border-radius:5px;">
-                        ${post.replies ? post.replies.map(r => `<div style="border-bottom:1px solid #ddd; padding:5px 0; font-size:0.9em;"><strong>User ${r.random_user_id}:</strong> ${r.content}</div>`).join('') : ''}
+                    <div style="background:#f9f9f9; padding:10px; border-radius:5px;">
+                        ${post.replies ? post.replies.map(r => `
+                            <div class="reply-item">
+                                <strong>User ${r.random_user_id}:</strong> ${r.content}
+                                <div class="reply-actions">
+                                    <button class="vote-btn" onclick="vote(${r.id}, 'like')">👍 ${r.likes || 0}</button>
+                                    <button class="vote-btn" onclick="vote(${r.id}, 'dislike')">👎 ${r.dislikes || 0}</button>
+                                </div>
+                            </div>
+                        `).join('') : ''}
+                        
                         <div style="display:flex; gap:5px; margin-top:10px;">
-                            <input type="text" id="reply-input-${post.id}" placeholder="Reply..." style="margin:0; background:white;">
+                            <input type="text" id="reply-input-${post.id}" placeholder="Add reply..." style="margin:0; background:white;">
                             <button onclick="reply(${post.id})" style="width:80px; margin:0; background:#555; color:white; border:none;">Reply</button>
                         </div>
                     </div>
                 </div>
             `).join('');
+            
+            // Append to existing list
+            container.insertAdjacentHTML('beforeend', html);
+        }
+
+        async function vote(replyId, type) {
+            await fetch(`${API_URL}/vote`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ replyId, type })
+            });
+            // We don't reload everything to keep scroll position, just alert or let it be
         }
 
         async function loadTop10() {
             const res = await fetch(`${API_URL}/top-posts?category=${currentCategory}`);
             const posts = await res.json();
-            
-            const container = document.getElementById("top-posts-list");
-            container.innerHTML = posts.map((post, index) => `
+            document.getElementById("top-posts-list").innerHTML = posts.map((post, index) => `
                 <a href="?viewPost=${post.id}" target="_blank" class="top-post-item">
-                    <strong>#${index + 1}</strong> ${post.content}
+                    <strong>#${index + 1}</strong> ${post.content} <span style="font-size:0.8em; color:#888;">(Score: ${post.score})</span>
                 </a>
             `).join('');
-        }
-
-        async function vote(postId, type) {
-            // Optimistic UI update (update number immediately)
-            loadPosts(); 
-            await fetch(`${API_URL}/vote`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ postId, type })
-            });
         }
 
         async function createPost() {
             const content = document.getElementById("new-post-content").value;
             if(!content) return;
-            
             await fetch(`${API_URL}/posts`, {
                 method: "POST",
                 headers: { "Authorization": token, "Content-Type": "application/json" },
                 body: JSON.stringify({ content, category: currentCategory })
             });
             document.getElementById("new-post-content").value = "";
-            loadPosts();
+            initialLoad();
             loadTop10();
         }
 
         async function reply(postId) {
             const content = document.getElementById(`reply-input-${postId}`).value;
             if(!content) return;
-
             await fetch(`${API_URL}/reply`, {
                 method: "POST",
                 headers: { "Authorization": token, "Content-Type": "application/json" },
                 body: JSON.stringify({ postId, content })
             });
-            loadPosts();
+            // Reload strictly this post or just refresh
+            initialLoad(); 
         }
 
-        // --- AUTH FUNCTIONS (Same as before) ---
+        // --- AUTH ---
         async function requestOtp() {
             const email = document.getElementById("email").value;
-            if(!email) return alert("Enter email");
-            
             const res = await fetch(`${API_URL}/login`, { method: "POST", body: JSON.stringify({ email }) });
-            if(res.ok) {
-                document.getElementById("otp-section").classList.remove("hidden");
-                alert("Code sent!");
-            } else { alert("Error/Invalid Domain"); }
+            if(res.ok) { document.getElementById("otp-section").classList.remove("hidden"); } 
+            else { alert("Invalid Domain"); }
         }
-
         async function verifyOtp() {
             const email = document.getElementById("email").value;
             const otp = document.getElementById("otp").value;
@@ -254,7 +253,6 @@
                 location.reload(); 
             } else { alert("Invalid Code"); }
         }
-
         function logout() { localStorage.removeItem("anon_token"); location.reload(); }
     </script>
 </body>
