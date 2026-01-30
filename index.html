@@ -31,8 +31,28 @@
 
         /* UTILS */
         .hidden { display: none; }
-        input, textarea, button.primary { width: 100%; padding: 10px; margin-top: 10px; box-sizing: border-box; }
-        button.primary { background: #333; color: white; border: none; font-weight: bold; cursor: pointer; }
+/* 1. Keep the text box full width */
+        input, textarea { 
+            width: 100%; 
+            padding: 10px; 
+            margin-top: 10px; 
+            box-sizing: border-box; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+        }
+
+        /* 2. New style for the small Blue Post Button */
+        .post-btn { 
+            background: #2563eb; /* Blue color */
+            color: white; 
+            border: none; 
+            padding: 6px 20px;   /* Small size */
+            border-radius: 4px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            font-size: 0.9em;
+        }
+        .post-btn:hover { background: #1d4ed8; }
         .reply-box { margin-top: 10px; background: #f9f9f9; padding: 10px; border-left: 3px solid #ccc; font-size: 0.9em; }
     </style>
 </head>
@@ -62,9 +82,12 @@
                     <button id="btn-bakwaas" class="tab-btn" onclick="switchCategory('bakwaas')">Bakwaas 🤪</button>
                 </div>
 
-                <div style="background:white; padding:15px; border-radius:8px; margin-bottom:20px;">
+                <div style="background:white; padding:15px; border-radius:8px; margin-bottom:20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                     <textarea id="new-post-content" rows="3" placeholder="Write something anonymous..."></textarea>
-                    <button class="primary" onclick="createPost()">Post to <span id="current-cat-name">Serious</span></button>
+    
+                    <div style="display:flex; justify-content: flex-end; margin-top:10px;">
+                        <button class="post-btn" onclick="createPost()">Post to <span id="current-cat-name">Serious</span></button>
+                    </div>
                 </div>
 
                 <div id="posts-container">Loading...</div>
