@@ -21,7 +21,7 @@
 
         .container { max-width: 1000px; margin: 20px auto; display: flex; gap: 20px; padding: 0 20px; }
         .main-content { flex: 3; } 
-        .sidebar { flex: 1; background: white; padding: 15px; border-radius: 8px; height: fit-content; position: sticky; top: 80px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .sidebar { flex: 1; background: white; padding: 15px; border-radius: 8px; height: fit-content; position: sticky; top: 80px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); min-width: 0 }
         
         /* SEARCH & INPUTS */
         .search-container { display: flex; gap: 5px; margin-bottom: 20px; }
@@ -59,12 +59,7 @@
 
         /* SIDEBAR ITEMS (Add this missing block!) */
         .top-post-item { 
-            display: block;  /* Forces each item to be on a new line */
-            padding: 8px 0; 
-            border-bottom: 1px solid #eee; 
-            color: #333; 
-            text-decoration: none; 
-            font-size: 0.9em; 
+            display: block; padding: 8px 0; border-bottom: 1px solid #eee; color: #333; text-decoration: none; font-size: 0.9em; 
             
             /* These lines cut off long text nicely with "..." */
             white-space: nowrap; 
