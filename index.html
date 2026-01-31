@@ -67,6 +67,41 @@
             text-overflow: ellipsis; 
         }
         .top-post-item:hover { color: #2563eb; }
+
+        /* RESPONSIVE LAYOUT (Mobile Optimization) */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column; /* Stack items vertically */
+                padding: 10px;          /* Less padding on small screens */
+            }
+
+            .main-content {
+                order: 1; /* Feed comes FIRST */
+                width: 100%;
+            }
+
+            .sidebar {
+                order: 2; /* Sidebar moves to the BOTTOM */
+                width: 100%;
+                margin-top: 30px; /* Add spacing so it doesn't touch the last post */
+                position: static; /* Remove sticky on mobile so it sits naturally at the bottom */
+                box-shadow: none; /* Optional: Cleaner look on mobile */
+                border-top: 1px solid var(--border-color); /* Add a divider line */
+                padding-top: 20px;
+            }
+            
+            /* Adjust Header for mobile */
+            .header {
+                padding: 10px; /* Tighter header */
+            }
+            .logo {
+                font-size: 1em; /* Slightly smaller logo text */
+            }
+            .nav-btn {
+                padding: 5px 10px; /* Smaller tabs */
+            }
+        }
+
         
     </style>
 </head>
