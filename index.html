@@ -215,15 +215,16 @@
                     <div class="post-content">${post.content}</div>
                     
                     <div class="reply-section">
-                        ${post.replies && post.replies.length > 0 ? post.replies.map(r => `
-                            <div class="reply-item">
-                                <span style="font-weight:bold; color:#4b5563;">User ${r.random_user_id}:</span> ${r.content}
-                                <div class="vote-row">
-                                    <button id="like-btn-${r.id}" class="vote-btn" onclick="vote(${r.id}, 'like')">👍 ${r.likes || 0}</button>
-                                    <button id="dislike-btn-${r.id}" class="vote-btn" onclick="vote(${r.id}, 'dislike')">👎 ${r.dislikes || 0}</button>
+                        <div id="reply-list-${post.id}">
+                            ${post.replies && post.replies.length > 0 ? post.replies.map(r => `
+                                <div class="reply-item">
+                                    <span style="font-weight:bold; color:#4b5563;">User ${r.random_user_id}:</span> ${r.content}
+                                    <div class="vote-row">
+                                        <button id="like-btn-${r.id}" class="vote-btn" onclick="vote(${r.id}, 'like')">👍 ${r.likes || 0}</button>
+                                        <button id="dislike-btn-${r.id}" class="vote-btn" onclick="vote(${r.id}, 'dislike')">👎 ${r.dislikes || 0}</button>
+                                    </div>
                                 </div>
-                            </div>
-                        `).join('') : '<div style="font-size:0.8em; color:#999; margin-bottom:10px;">No replies yet</div>'}
+                            `).join('') : ''} </div>
                         
                         <div style="display:flex; gap:8px; margin-top:15px;">
                             <textarea id="reply-input-${post.id}" rows="1" placeholder="Reply... (Enter to submit)" 
@@ -237,7 +238,6 @@
             
             container.insertAdjacentHTML('beforeend', html);
         }
-
 
         async function loadTop10() {
             const list = document.getElementById("top-posts-list");
@@ -329,15 +329,35 @@
             const content = input.value;
             if(!content.trim()) return;
 
+            // 1. Optimistic Update: Show it on screen IMMEDIATELY
+            const replyList = document.getElementById(`reply-list-${postId}`);
+            
+            // We use 'token' as the User ID since that's how it is stored
+            const myUserId = token || "Me"; 
+
+            // Create the HTML for the new reply
+            // Note: We don't add vote buttons yet because we don't have the Reply ID from the server
+            const newHTML = `
+                <div class="reply-item" style="background-color:#f0fdf4; transition: background 1s;">
+                    <span style="font-weight:bold; color:#4b5563;">User ${myUserId}:</span> ${content}
+                    <div style="font-size:0.8em; color:#888; margin-top:4px;">(Just now)</div>
+                </div>
+            `;
+            
+            // Add to the bottom of the list
+            replyList.insertAdjacentHTML('beforeend', newHTML);
+            
+            // Clear the box
+            input.value = "";
+
+            // 2. Send to Server (Background)
             await fetch(`${API_URL}/reply`, {
                 method: "POST",
                 headers: { "Authorization": token, "Content-Type": "application/json" },
                 body: JSON.stringify({ postId, content })
             });
             
-            // For simplicity, we just reload the page/feed to show new reply
-            if (singlePostId) loadSinglePost(singlePostId);
-            else initialLoad();
+            // DONE! We do NOT call initialLoad() anymore.
         }
 
         // --- SEARCH ---
