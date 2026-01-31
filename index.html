@@ -86,7 +86,7 @@
         
         <div class="header">
             <div class="header-left">
-                <div class="logo">📢 Campus Boardd</div>
+                <div class="logo">📢 Campus Board</div>
                 <div class="nav-tabs" id="header-tabs">
                     <button id="btn-serious" class="nav-btn active" onclick="switchCategory('serious')">Serious 🎓</button>
                     <button id="btn-bakwaas" class="nav-btn" onclick="switchCategory('bakwaas')">Bakwaas 🤪</button>
@@ -329,41 +329,38 @@
             const content = input.value;
             if(!content.trim()) return;
 
-            // 1. Optimistic Update: Show it on screen IMMEDIATELY
-            const replyList = document.getElementById(`reply-list-${postId}`);
-            
-            // We use 'token' as the User ID since that's how it is stored
-            const myUserId = token || "Me"; 
+            // 1. Disable input briefly so user doesn't double-click
+            input.disabled = true;
 
-            // Create the HTML for the new reply
-            // Note: We don't add vote buttons yet because we don't have the Reply ID from the server
-            const newHTML = `
-                <div class="reply-item" style="background-color:#f0fdf4; transition: background 1s;">
-                    <span style="font-weight:bold; color:#4b5563;">User ${myUserId}:</span> ${content}
-                    <div style="font-size:0.8em; color:#888; margin-top:4px;">(Just now)</div>
-                </div>
-            `;
-            
-            // Add to the bottom of the list
-            replyList.insertAdjacentHTML('beforeend', newHTML);
-            
-            // Clear the box
-            input.value = "";
-
-            // 2. Send to Server (Background)
-            await fetch(`${API_URL}/reply`, {
+            // 2. Send to Server & Wait for the new ID
+            const res = await fetch(`${API_URL}/reply`, {
                 method: "POST",
                 headers: { "Authorization": token, "Content-Type": "application/json" },
                 body: JSON.stringify({ postId, content })
             });
             
-            // DONE! We do NOT call initialLoad() anymore.
-        }
+            const data = await res.json(); // Server returns: { id: 123 }
 
-        // --- SEARCH ---
-        function triggerSearch() {
-            currentSearch = document.getElementById("search-box").value;
-            initialLoad();
+            // 3. Append HTML (Now with the REAL ID for buttons!)
+            const replyList = document.getElementById(`reply-list-${postId}`);
+            const myUserId = token || "Me"; 
+
+            const newHTML = `
+                <div class="reply-item" style="background-color:#f0fdf4;">
+                    <span style="font-weight:bold; color:#4b5563;">User ${myUserId}:</span> ${content}
+                    <div class="vote-row">
+                        <button id="like-btn-${data.id}" class="vote-btn" onclick="vote(${data.id}, 'like')">👍 0</button>
+                        <button id="dislike-btn-${data.id}" class="vote-btn" onclick="vote(${data.id}, 'dislike')">👎 0</button>
+                    </div>
+                </div>
+            `;
+            
+            replyList.insertAdjacentHTML('beforeend', newHTML);
+            
+            // 4. Reset Input
+            input.value = "";
+            input.disabled = false;
+            input.focus();
         }
 
         // --- AUTH ---
