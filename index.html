@@ -226,6 +226,36 @@
             container.insertAdjacentHTML('beforeend', html);
         }
 
+
+        async function loadTop10() {
+            const list = document.getElementById("top-posts-list");
+            
+            try {
+                const res = await fetch(`${API_URL}/top-posts?category=${currentCategory}`);
+                
+                // If server errors, show "Failed" instead of freezing
+                if (!res.ok) throw new Error("Server Error");
+                
+                const posts = await res.json();
+
+                if (!posts || posts.length === 0) {
+                    list.innerHTML = "<div style='color:#999; padding:10px 0; font-size:0.9em;'>No active posts.</div>";
+                    return;
+                }
+
+                list.innerHTML = posts.map((post, index) => `
+                    <a href="?viewPost=${post.id}" target="_blank" class="top-post-item">
+                        <strong>#${index + 1}</strong> ${post.content}
+                    </a>
+                `).join('');
+                
+            } catch (e) {
+                console.error(e);
+                list.innerHTML = "<div style='color:red; font-size:0.8em;'>Failed to load.</div>";
+            }
+        }
+        
+        
         async function vote(replyId, type) {
             const btnId = type === 'like' ? `like-btn-${replyId}` : `dislike-btn-${replyId}`;
             const otherBtnId = type === 'like' ? `dislike-btn-${replyId}` : `like-btn-${replyId}`;
