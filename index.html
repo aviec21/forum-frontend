@@ -6,46 +6,56 @@
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; background: #f0f2f5; }
         
-        /* HEADER (New) */
-        .header { background: white; padding: 15px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
-        .logo { font-size: 1.2em; font-weight: bold; color: #333; }
-        .logout-btn { background: #fee2e2; color: #dc2626; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9em; font-weight: bold; }
+        /* HEADER (Modified for Tabs) */
+        .header { background: white; padding: 10px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; height: 50px; }
+        .header-left { display: flex; align-items: center; gap: 20px; }
+        .logo { font-size: 1.2em; font-weight: bold; color: #333; margin-right: 10px; }
+        
+        /* TABS (Now inside Header) */
+        .nav-tabs { display: flex; gap: 5px; background: #f0f2f5; padding: 4px; border-radius: 6px; }
+        .nav-btn { border: none; background: none; padding: 6px 15px; cursor: pointer; font-weight: bold; font-size: 0.9em; border-radius: 4px; color: #666; }
+        .nav-btn.active { background: #fff; color: #000; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .nav-btn:hover { color: #000; }
+
+        .logout-btn { background: #fee2e2; color: #dc2626; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85em; font-weight: bold; }
 
         .container { max-width: 1000px; margin: 20px auto; display: flex; gap: 20px; padding: 0 20px; }
         .main-content { flex: 3; } 
         .sidebar { flex: 1; background: white; padding: 15px; border-radius: 8px; height: fit-content; position: sticky; top: 80px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         
-        /* SEARCH BAR (Fixed) */
+        /* SEARCH & INPUTS */
         .search-container { display: flex; gap: 5px; margin-bottom: 20px; }
         .search-input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; height: 40px; box-sizing: border-box; }
         .search-btn { width: 50px; height: 40px; background: #333; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1.2em; display: flex; align-items: center; justify-content: center; }
 
-        /* TABS */
-        .tabs { display: flex; gap: 10px; margin-bottom: 15px; }
-        .tab-btn { flex: 1; padding: 10px; border: none; background: #ddd; cursor: pointer; font-weight: bold; border-radius: 5px; color: #555; }
-        .tab-btn.active { background: #333; color: white; }
-
-        /* POSTS */
+        /* POSTS & TEXT WRAPPING FIX */
         .post { background: white; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .post-content { 
+            font-size: 1.1em; 
+            margin-bottom: 10px; 
+            color: #1f2937;
+            white-space: pre-wrap; /* Preserves new lines */
+            overflow-wrap: anywhere; /* FIX: Breaks long words like fffffff */
+            word-break: break-word; 
+        }
         .meta { color: #888; font-size: 0.8em; margin-bottom: 8px; }
         
         /* REPLY & VOTE */
         .reply-section { background: #f8f9fa; padding: 10px; border-radius: 5px; margin-top: 10px; }
-        .reply-item { border-top: 1px solid #eee; padding: 8px 0; font-size: 0.9em; }
+        .reply-item { border-top: 1px solid #eee; padding: 8px 0; font-size: 0.9em; overflow-wrap: anywhere; }
         .vote-row { display: flex; gap: 15px; margin-top: 5px; }
-        .vote-btn { background: none; border: none; cursor: pointer; color: #666; font-size: 0.85em; padding: 0; }
-        .vote-btn:hover { color: #2563eb; }
-
-        /* SIDEBAR ITEMS */
-        .top-post-item { display: block; padding: 8px 0; border-bottom: 1px solid #eee; color: #333; text-decoration: none; font-size: 0.9em; }
-        .top-post-item:hover { color: #2563eb; }
         
+        .vote-btn { background: none; border: none; cursor: pointer; color: #888; font-size: 0.85em; padding: 0; transition: color 0.2s; }
+        .vote-btn:hover { color: #555; }
+        .vote-btn.voted-like { color: #2563eb; font-weight: bold; } /* Blue for Like */
+        .vote-btn.voted-dislike { color: #dc2626; font-weight: bold; } /* Red for Dislike */
+
         /* UTILS */
-        textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; resize: vertical; }
+        textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; resize: vertical; font-family: inherit; }
         .post-btn { background: #2563eb; color: white; border: none; padding: 6px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; }
         .post-btn:hover { background: #1d4ed8; }
         .load-more-btn { width: 100%; padding: 10px; background: #e5e7eb; border: none; margin-top: 10px; cursor: pointer; font-weight: bold; border-radius: 4px; color: #374151; }
-        .hidden { display: none; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -54,7 +64,6 @@
         <h2>🔒 Campus Login</h2>
         <input type="email" id="email" placeholder="student@iimidr.ac.in" style="width:100%; padding:10px; margin-bottom:10px; box-sizing:border-box;">
         <button class="post-btn" style="width:100%;" onclick="requestOtp()">Get Code</button>
-        
         <div id="otp-section" class="hidden" style="margin-top:15px; border-top:1px solid #eee; padding-top:15px;">
             <input type="text" id="otp" placeholder="Enter 6-digit Code" style="width:100%; padding:10px; margin-bottom:10px; box-sizing:border-box;">
             <button class="post-btn" style="width:100%;" onclick="verifyOtp()">Enter Forum</button>
@@ -64,7 +73,13 @@
     <div id="main-page" class="hidden">
         
         <div class="header">
-            <div class="logo">📢 Campus Board</div>
+            <div class="header-left">
+                <div class="logo">📢 Campus Board</div>
+                <div class="nav-tabs" id="header-tabs">
+                    <button id="btn-serious" class="nav-btn active" onclick="switchCategory('serious')">Serious 🎓</button>
+                    <button id="btn-bakwaas" class="nav-btn" onclick="switchCategory('bakwaas')">Bakwaas 🤪</button>
+                </div>
+            </div>
             <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
 
@@ -72,17 +87,12 @@
             <div class="main-content">
                 
                 <div class="search-container">
-                    <input type="text" id="search-box" class="search-input" placeholder="Search topics..." onkeydown="handleSearchEnter(event)">
+                    <input type="text" id="search-box" class="search-input" placeholder="Search topics..." onkeydown="handleEnter(event, triggerSearch)">
                     <button class="search-btn" onclick="triggerSearch()">🔍</button>
                 </div>
 
-                <div class="tabs">
-                    <button id="btn-serious" class="tab-btn active" onclick="switchCategory('serious')">Serious 🎓</button>
-                    <button id="btn-bakwaas" class="tab-btn" onclick="switchCategory('bakwaas')">Bakwaas 🤪</button>
-                </div>
-
-                <div style="background:white; padding:15px; border-radius:8px; margin-bottom:20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                    <textarea id="new-post-content" rows="3" placeholder="Write something anonymous..."></textarea>
+                <div id="create-post-container" style="background:white; padding:15px; border-radius:8px; margin-bottom:20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <textarea id="new-post-content" rows="3" placeholder="Write something anonymous... (Press Enter to post)" onkeydown="handleEnter(event, createPost)"></textarea>
                     <div style="display:flex; justify-content: flex-end; margin-top:10px;">
                         <button class="post-btn" onclick="createPost()">Post</button>
                     </div>
@@ -94,14 +104,13 @@
 
             <div class="sidebar">
                 <h3 style="margin-top:0;">🔥 Top 10</h3>
-                <div style="font-size:0.8em; color:#666; margin-bottom:10px;">Ranked by reply activity</div>
                 <div id="top-posts-list">Loading...</div>
             </div>
         </div>
     </div>
 
     <script>
-        // *** IMPORTANT: Put your Worker URL here ***
+        // *** UPDATE YOUR WORKER URL HERE ***
         const API_URL = "https://dry-haze-494a.agiri2016.workers.dev/api"; 
 
         let token = localStorage.getItem("anon_token");
@@ -109,7 +118,6 @@
         let currentOffset = 0;
         let currentSearch = "";
 
-        // Check URL for single post view
         const urlParams = new URLSearchParams(window.location.search);
         const singlePostId = urlParams.get('viewPost');
 
@@ -124,23 +132,22 @@
             loadTop10();
         }
 
-        // --- CORE FUNCTIONS ---
-
-        function handleSearchEnter(e) { if(e.key === 'Enter') triggerSearch(); }
-        
-        function triggerSearch() {
-            currentSearch = document.getElementById("search-box").value;
-            initialLoad();
+        // --- ENTER KEY HANDLER ---
+        function handleEnter(e, callback, param) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault(); // Stop new line
+                callback(param); // Submit
+            }
         }
 
         function switchCategory(cat) {
             currentCategory = cat;
             currentSearch = ""; 
             document.getElementById("search-box").value = "";
-            document.getElementById("btn-serious").className = cat === 'serious' ? 'tab-btn active' : 'tab-btn';
-            document.getElementById("btn-bakwaas").className = cat === 'bakwaas' ? 'tab-btn active' : 'tab-btn';
+            document.getElementById("btn-serious").className = cat === 'serious' ? 'nav-btn active' : 'nav-btn';
+            document.getElementById("btn-bakwaas").className = cat === 'bakwaas' ? 'nav-btn active' : 'nav-btn';
             
-            if(singlePostId) window.location.href = window.location.pathname; // Exit single view
+            if(singlePostId) window.location.href = window.location.pathname; 
             initialLoad();
             loadTop10();
         }
@@ -165,11 +172,98 @@
                 const res = await fetch(url);
                 const posts = await res.json();
                 renderPosts(posts);
-
                 const btn = document.getElementById("load-more-btn");
                 if(posts.length < 5) btn.classList.add("hidden");
                 else btn.classList.remove("hidden");
-            } catch (e) { console.error("Error loading posts:", e); }
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadSinglePost(id) {
+            // HIDE ELEMENTS FOR SINGLE VIEW
+            document.getElementById("header-tabs").classList.add("hidden"); // Hide tabs in header
+            document.querySelector(".search-container").classList.add("hidden");
+            document.getElementById("load-more-btn").classList.add("hidden");
+            document.getElementById("create-post-container").classList.add("hidden"); // Hide Post Box
+
+            const res = await fetch(`${API_URL}/posts?id=${id}`);
+            const posts = await res.json();
+            renderPosts(posts);
+        }
+
+        function renderPosts(posts) {
+            const container = document.getElementById("posts-container");
+            if (posts.length === 0 && currentOffset === 0) {
+                container.innerHTML = "<div style='text-align:center; padding:20px; color:#888;'>No posts found.</div>";
+                return;
+            }
+
+            const html = posts.map(post => `
+                <div class="post">
+                    <div class="meta">User ${post.random_user_id} • ${new Date(post.created_at * 1000).toLocaleDateString()}</div>
+                    <div class="post-content">${post.content}</div>
+                    
+                    <div class="reply-section">
+                        ${post.replies && post.replies.length > 0 ? post.replies.map(r => `
+                            <div class="reply-item">
+                                <span style="font-weight:bold; color:#4b5563;">User ${r.random_user_id}:</span> ${r.content}
+                                <div class="vote-row">
+                                    <button id="like-btn-${r.id}" class="vote-btn" onclick="vote(${r.id}, 'like')">👍 ${r.likes || 0}</button>
+                                    <button id="dislike-btn-${r.id}" class="vote-btn" onclick="vote(${r.id}, 'dislike')">👎 ${r.dislikes || 0}</button>
+                                </div>
+                            </div>
+                        `).join('') : '<div style="font-size:0.8em; color:#999; margin-bottom:10px;">No replies yet</div>'}
+                        
+                        <div style="display:flex; gap:8px; margin-top:15px;">
+                            <textarea id="reply-input-${post.id}" rows="1" placeholder="Reply... (Enter to submit)" 
+                                      style="padding:8px; border:1px solid #ddd; border-radius:4px; flex:1;"
+                                      onkeydown="handleEnter(event, reply, ${post.id})"></textarea>
+                            <button onclick="reply(${post.id})" style="background:#555; color:white; border:none; padding:5px 15px; border-radius:4px; cursor:pointer;">Reply</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            container.insertAdjacentHTML('beforeend', html);
+        }
+
+        async function vote(replyId, type) {
+            const btnId = type === 'like' ? `like-btn-${replyId}` : `dislike-btn-${replyId}`;
+            const otherBtnId = type === 'like' ? `dislike-btn-${replyId}` : `like-btn-${replyId}`;
+            const btn = document.getElementById(btnId);
+            const otherBtn = document.getElementById(otherBtnId);
+            
+            // 1. Send Request
+            const res = await fetch(`${API_URL}/vote`, {
+                method: "POST",
+                headers: { "Authorization": token, "Content-Type": "application/json" },
+                body: JSON.stringify({ replyId, type })
+            });
+
+            const text = await res.text();
+
+            // 2. Handle UI based on Server Response
+            // Helper to get number: "👍 5" -> 5
+            const getNum = (el) => parseInt(el.innerText.split(" ")[1]) || 0;
+            const setNum = (el, icon, num) => el.innerText = `${icon} ${num}`;
+
+            if (text === "Voted") {
+                // Add 1 to clicked
+                setNum(btn, type==='like'?'👍':'👎', getNum(btn) + 1);
+                btn.classList.add(type === 'like' ? 'voted-like' : 'voted-dislike');
+            } 
+            else if (text === "Removed") {
+                // Remove 1 from clicked
+                setNum(btn, type==='like'?'👍':'👎', Math.max(0, getNum(btn) - 1));
+                btn.classList.remove('voted-like', 'voted-dislike');
+            } 
+            else if (text === "Switched") {
+                // Remove 1 from OTHER, Add 1 to THIS
+                setNum(otherBtn, type==='like'?'👎':'👍', Math.max(0, getNum(otherBtn) - 1));
+                otherBtn.classList.remove('voted-like', 'voted-dislike');
+
+                setNum(btn, type==='like'?'👍':'👎', getNum(btn) + 1);
+                btn.classList.add(type === 'like' ? 'voted-like' : 'voted-dislike');
+            }
         }
 
         async function createPost() {
@@ -182,7 +276,7 @@
                 body: JSON.stringify({ content, category: currentCategory })
             });
             document.getElementById("new-post-content").value = "";
-            initialLoad(); // Refresh feed immediately
+            initialLoad();
             loadTop10();
         }
 
@@ -197,111 +291,15 @@
                 body: JSON.stringify({ postId, content })
             });
             
-            // Reload just this post's section (Advanced: we'll just reload the feed for simplicity)
-            initialLoad(); 
-            loadTop10(); // Update rankings
+            // For simplicity, we just reload the page/feed to show new reply
+            if (singlePostId) loadSinglePost(singlePostId);
+            else initialLoad();
         }
 
-        async function vote(replyId, type) {
-            // 1. Optimistic UI: Add +1 immediately
-            const btnId = type === 'like' ? `like-btn-${replyId}` : `dislike-btn-${replyId}`;
-            const btn = document.getElementById(btnId);
-            
-            let originalText = "";
-            if (btn) {
-                originalText = btn.innerText; // Save old text in case we need to undo
-                const parts = originalText.split(" "); 
-                const icon = parts[0];
-                const currentCount = parseInt(parts[1]) || 0;
-                btn.innerText = `${icon} ${currentCount + 1}`;
-                btn.disabled = true; // Temporary disable
-            }
-
-            // 2. Send to Server (WITH TOKEN)
-            const res = await fetch(`${API_URL}/vote`, {
-                method: "POST",
-                headers: { 
-                    "Authorization": token, // <--- IMPORTANT: Send User ID
-                    "Content-Type": "application/json" 
-                },
-                body: JSON.stringify({ replyId, type })
-            });
-
-            // 3. If server says "Already Voted", undo the UI change
-            if (res.status === 409) {
-                if (btn) {
-                    btn.innerText = originalText; // Revert to old number
-                    // Optional: Alert the user
-                    // alert("You can only vote once!");
-                }
-            }
-        }
-
-
-        // --- RENDERERS ---
-
-        function renderPosts(posts) {
-            const container = document.getElementById("posts-container");
-            if (posts.length === 0 && currentOffset === 0) {
-                container.innerHTML = "<div style='text-align:center; padding:20px; color:#888;'>No posts yet. Be the first!</div>";
-                return;
-            }
-
-            const html = posts.map(post => `
-                <div class="post">
-                    <div class="meta">User ${post.random_user_id} • ${new Date(post.created_at * 1000).toLocaleDateString()}</div>
-                    <div style="font-size:1.1em; margin-bottom:10px; color:#1f2937;">${post.content}</div>
-                    
-                    <div class="reply-section">
-                        ${post.replies && post.replies.length > 0 ? post.replies.map(r => `
-                            <div class="reply-item">
-                                <span style="font-weight:bold; color:#4b5563;">User ${r.random_user_id}:</span> ${r.content}
-                                <div class="vote-row">
-                                    <button id="like-btn-${r.id}" class="vote-btn" onclick="vote(${r.id}, 'like')">👍 ${r.likes || 0}</button>
-                                    <button id="dislike-btn-${r.id}" class="vote-btn" onclick="vote(${r.id}, 'dislike')">👎 ${r.dislikes || 0}</button>
-                                </div>
-                            </div>
-                        `).join('') : '<div style="font-size:0.8em; color:#999; margin-bottom:10px;">No replies yet</div>'}
-                        
-                        <div style="display:flex; gap:8px; margin-top:15px;">
-                            <input type="text" id="reply-input-${post.id}" placeholder="Add a reply..." style="padding:8px; border:1px solid #ddd; border-radius:4px; flex:1;">
-                            <button onclick="reply(${post.id})" style="background:#555; color:white; border:none; padding:5px 15px; border-radius:4px; cursor:pointer;">Reply</button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-            
-            container.insertAdjacentHTML('beforeend', html);
-        }
-
-        async function loadTop10() {
-            try {
-                const res = await fetch(`${API_URL}/top-posts?category=${currentCategory}`);
-                const posts = await res.json();
-                const list = document.getElementById("top-posts-list");
-                
-                if(!posts || posts.length === 0) {
-                    list.innerHTML = "<div style='color:#999; padding:10px 0;'>No active posts.</div>";
-                    return;
-                }
-
-                list.innerHTML = posts.map((post, index) => `
-                    <a href="?viewPost=${post.id}" target="_blank" class="top-post-item">
-                        <strong>#${index + 1}</strong> ${post.content} 
-                    </a>
-                `).join('');
-            } catch(e) {
-                document.getElementById("top-posts-list").innerText = "Failed to load.";
-            }
-        }
-        
-        async function loadSinglePost(id) {
-            document.querySelector(".tabs").classList.add("hidden");
-            document.querySelector(".search-container").classList.add("hidden");
-            document.getElementById("load-more-btn").classList.add("hidden");
-            const res = await fetch(`${API_URL}/posts?id=${id}`);
-            const posts = await res.json();
-            renderPosts(posts);
+        // --- SEARCH ---
+        function triggerSearch() {
+            currentSearch = document.getElementById("search-box").value;
+            initialLoad();
         }
 
         // --- AUTH ---
@@ -310,7 +308,7 @@
             if(!email) return alert("Please enter email");
             const res = await fetch(`${API_URL}/login`, { method: "POST", body: JSON.stringify({ email }) });
             if(res.ok) document.getElementById("otp-section").classList.remove("hidden");
-            else alert("Access Denied: Institute Email Required");
+            else alert("Error");
         }
         async function verifyOtp() {
             const email = document.getElementById("email").value;
