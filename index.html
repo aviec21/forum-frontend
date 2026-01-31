@@ -233,16 +233,18 @@
             try {
                 const res = await fetch(`${API_URL}/top-posts?category=${currentCategory}`);
                 
-                // If server errors, show "Failed" instead of freezing
+                // Safety check for server errors
                 if (!res.ok) throw new Error("Server Error");
                 
                 const posts = await res.json();
 
+                // Handle empty list
                 if (!posts || posts.length === 0) {
                     list.innerHTML = "<div style='color:#999; padding:10px 0; font-size:0.9em;'>No active posts.</div>";
                     return;
                 }
 
+                // RENDER LIST (Clean vertical list, NO scores)
                 list.innerHTML = posts.map((post, index) => `
                     <a href="?viewPost=${post.id}" target="_blank" class="top-post-item">
                         <strong>#${index + 1}</strong> ${post.content}
