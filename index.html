@@ -145,40 +145,49 @@
     </div>
 
     <script>
-        const API_URL = "https://dry-haze-494a.agiri2016.workers.dev/api"; 
 
+        const API_URL = "https://dry-haze-494a.agiri2016.workers.dev/api"; 
+        
         let token = localStorage.getItem("anon_token");
-        let isAdmin = localStorage.getItem("is_admin") === "true"; // Track Admin Status
+        let isAdmin = localStorage.getItem("is_admin") === "true"; 
         let currentCategory = "serious";
         let currentOffset = 0;
         let currentSearch = "";
         
         const urlParams = new URLSearchParams(window.location.search);
         const singlePostId = urlParams.get('viewPost');
-
-        // INIT
+        
+        // --- INITIALIZATION ---
         if (token) {
             document.getElementById("login-page").classList.add("hidden");
             document.getElementById("main-page").classList.remove("hidden");
             
-            // Apply Theme
+            // Apply saved theme
             if(localStorage.getItem("theme") === "dark") {
                 document.body.setAttribute("data-theme", "dark");
                 document.getElementById("theme-icon").innerText = "☀️";
             }
-
+        
+            // Show Admin 'Reported' Tab if authorized
+            if (isAdmin) {
+                const btnReported = document.getElementById("btn-reported");
+                if (btnReported) btnReported.classList.remove("hidden");
+            }
+        
             if (singlePostId) loadSinglePost(singlePostId);
             else initialLoad();
+            
             loadTop10();
         }
-
+        
+        // --- UTILS ---
         function handleEnter(e, callback, param) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 callback(param);
             }
         }
-
+        
         function toggleTheme() {
             const body = document.body;
             const isDark = body.getAttribute("data-theme") === "dark";
@@ -186,65 +195,103 @@
             document.getElementById("theme-icon").innerText = isDark ? "🌙" : "☀️";
             localStorage.setItem("theme", isDark ? "light" : "dark");
         }
-
+        
         function switchCategory(cat) {
             currentCategory = cat;
             currentSearch = "";
             document.getElementById("search-box").value = "";
+            
             document.getElementById("btn-serious").className = cat === 'serious' ? 'nav-btn active' : 'nav-btn';
             document.getElementById("btn-bakwaas").className = cat === 'bakwaas' ? 'nav-btn active' : 'nav-btn';
+            
+            const reportedBtn = document.getElementById("btn-reported");
+            if (reportedBtn) reportedBtn.className = cat === 'reported' ? 'nav-btn active' : 'nav-btn hidden';
+        
             if(singlePostId) window.location.href = window.location.pathname; 
-            initialLoad();
-            loadTop10();
+            
+            if (cat === 'reported') {
+                loadReported();
+            } else {
+                initialLoad();
+                loadTop10();
+            }
         }
-
+        
+        // --- FETCHING DATA ---
         function initialLoad() {
             currentOffset = 0;
             document.getElementById("posts-container").innerHTML = ""; 
             fetchPosts();
         }
-
+        
         function triggerSearch() {
             currentSearch = document.getElementById("search-box").value;
             initialLoad();
         }
-
+        
         function loadMore() {
             currentOffset += 5;
             fetchPosts();
         }
-
+        
         async function fetchPosts() {
             let url = `${API_URL}/posts?offset=${currentOffset}`;
             if(currentSearch) url += `&search=${encodeURIComponent(currentSearch)}`;
             else url += `&category=${currentCategory}`;
-
+        
             try {
                 const res = await fetch(url);
                 const posts = await res.json();
                 renderPosts(posts);
                 document.getElementById("load-more-btn").classList.toggle("hidden", posts.length < 5);
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error("Error fetching posts:", e); }
         }
-
+        
         async function loadSinglePost(id) {
             document.querySelector(".header").style.display = 'none'; 
             document.querySelector(".search-container").classList.add("hidden");
             document.getElementById("create-post-container").classList.add("hidden");
-            document.getElementById("sidebar-box").classList.add("hidden"); // Hide sidebar in single view
+            document.getElementById("sidebar-box").classList.add("hidden"); 
             
-            const res = await fetch(`${API_URL}/posts?id=${id}`);
-            const posts = await res.json();
-            renderPosts(posts);
+            try {
+                const res = await fetch(`${API_URL}/posts?id=${id}`);
+                const posts = await res.json();
+                renderPosts(posts);
+            } catch (e) { console.error(e); }
         }
-
+        
+        async function loadTop10() {
+            try {
+                const res = await fetch(`${API_URL}/top-posts?category=${currentCategory}`);
+                const posts = await res.json();
+                document.getElementById("top-posts-list").innerHTML = posts.map((post, i) => `
+                    <a href="?viewPost=${post.id}" target="_blank" class="top-post-item"><strong>#${i+1}</strong> ${post.content}</a>
+                `).join('');
+            } catch(e) { document.getElementById("top-posts-list").innerHTML = "<span style='color:red;'>Failed.</span>"; }
+        }
+        
+        async function loadReported() {
+            document.getElementById("posts-container").innerHTML = "<div style='text-align:center; padding:20px;'>Loading reported posts...</div>";
+            document.getElementById("load-more-btn").classList.add("hidden");
+        
+            try {
+                const res = await fetch(`${API_URL}/reported-posts`, {
+                    headers: { "Authorization": token }
+                });
+                const posts = await res.json();
+                document.getElementById("posts-container").innerHTML = ""; 
+                renderPosts(posts);
+            } catch (e) { console.error(e); }
+        }
+        
+        // --- RENDERING ---
         function renderPosts(posts) {
             const container = document.getElementById("posts-container");
             if (posts.length === 0 && currentOffset === 0) {
-                container.innerHTML = "<div style='text-align:center; padding:20px; color:#888;'>No posts found.</div>";
+                container.innerHTML = "<div style='text-align:center; padding:20px; color:var(--secondary-text);'>No posts found.</div>";
                 return;
             }
-
+        
             const html = posts.map(post => `
                 <div class="post" id="post-${post.id}">
                     <div class="meta">
@@ -253,12 +300,18 @@
                     </div>
                     <div class="post-content">${post.content}</div>
                     
+                    ${post.report_count ? `
+                        <div style="background:#fee2e2; color:#dc2626; padding:10px; border-radius:4px; font-size:0.85em; margin-bottom:10px; border:1px solid #f87171;">
+                            <strong>🚨 Reported ${post.report_count} times:</strong> ${post.report_reasons}
+                        </div>
+                    ` : ''}
+        
                     <div class="action-bar">
                         <button id="like-post-${post.id}" class="vote-btn" onclick="vote(${post.id}, 'like', 'post')">👍 ${post.likes || 0}</button>
                         <button id="dislike-post-${post.id}" class="vote-btn" onclick="vote(${post.id}, 'dislike', 'post')">👎 ${post.dislikes || 0}</button>
                         <button class="report-btn" onclick="reportPost(${post.id})">⚠️ Report</button>
                     </div>
-
+        
                     <div class="reply-section">
                         <div id="reply-list-${post.id}">
                             ${post.replies && post.replies.length > 0 ? post.replies.map(r => `
@@ -272,7 +325,7 @@
                             `).join('') : ''}
                         </div>
                         <div style="display:flex; gap:8px; margin-top:15px;">
-                            <input id="reply-input-${post.id}" placeholder="Reply..." onkeydown="handleEnter(event, reply, ${post.id})">
+                            <input id="reply-input-${post.id}" style="padding:8px; border:1px solid var(--border-color); border-radius:4px; flex:1; background:var(--input-bg); color:var(--text-color);" placeholder="Reply..." onkeydown="handleEnter(event, reply, ${post.id})">
                             <button onclick="reply(${post.id})" style="background:#555; color:white; border:none; padding:5px 15px; border-radius:4px; cursor:pointer;">Reply</button>
                         </div>
                     </div>
@@ -282,25 +335,25 @@
             container.insertAdjacentHTML('beforeend', html);
         }
 
+// --- ACTIONS ---
         async function vote(id, type, target) {
-            // target is 'post' or 'reply'
             const btnId = type === 'like' ? `like-${target}-${id}` : `dislike-${target}-${id}`;
             const otherBtnId = type === 'like' ? `dislike-${target}-${id}` : `like-${target}-${id}`;
             const btn = document.getElementById(btnId);
             const otherBtn = document.getElementById(otherBtnId);
-
+        
             const res = await fetch(`${API_URL}/vote`, {
                 method: "POST",
                 headers: { "Authorization": token, "Content-Type": "application/json" },
                 body: JSON.stringify({ id, type, target })
             });
             const text = await res.text();
-
+        
             const getNum = (el) => parseInt(el.innerText.split(" ")[1]) || 0;
             const setNum = (el, icon, num) => el.innerText = `${icon} ${num}`;
             const icon = type === 'like' ? '👍' : '👎';
             const otherIcon = type === 'like' ? '👎' : '👍';
-
+        
             if (text === "Voted") {
                 setNum(btn, icon, getNum(btn) + 1);
                 btn.classList.add(`voted-${type}`);
@@ -314,29 +367,38 @@
                 btn.classList.add(`voted-${type}`);
             }
         }
-
+        
         async function createPost() {
             const content = document.getElementById("new-post-content").value;
             if(!content.trim()) return;
-            await fetch(`${API_URL}/posts`, { method: "POST", headers: { "Authorization": token }, body: JSON.stringify({ content, category: currentCategory }) });
+            await fetch(`${API_URL}/posts`, { 
+                method: "POST", 
+                headers: { "Authorization": token, "Content-Type": "application/json" }, 
+                body: JSON.stringify({ content, category: currentCategory }) 
+            });
             document.getElementById("new-post-content").value = "";
             initialLoad();
             loadTop10();
         }
-
+        
         async function reply(postId) {
             const input = document.getElementById(`reply-input-${postId}`);
             const content = input.value;
             if(!content.trim()) return;
             input.disabled = true;
-
-            const res = await fetch(`${API_URL}/reply`, { method: "POST", headers: { "Authorization": token }, body: JSON.stringify({ postId, content }) });
+        
+            const res = await fetch(`${API_URL}/reply`, { 
+                method: "POST", 
+                headers: { "Authorization": token, "Content-Type": "application/json" }, 
+                body: JSON.stringify({ postId, content }) 
+            });
             const data = await res.json();
-
+        
             const replyList = document.getElementById(`reply-list-${postId}`);
+            const myUserId = token || "Me";
             const newHTML = `
                 <div class="reply-item" style="background-color:rgba(37, 99, 235, 0.1);">
-                    <span style="font-weight:bold; color:var(--secondary-text);">User Me:</span> ${content}
+                    <span style="font-weight:bold; color:var(--secondary-text);">User ${myUserId}:</span> ${content}
                     <div class="action-bar" style="margin-top:5px; font-size:0.8em;">
                         <button id="like-reply-${data.id}" class="vote-btn" onclick="vote(${data.id}, 'like', 'reply')">👍 0</button>
                         <button id="dislike-reply-${data.id}" class="vote-btn" onclick="vote(${data.id}, 'dislike', 'reply')">👎 0</button>
@@ -347,31 +409,33 @@
             input.disabled = false;
             input.focus();
         }
-
+        
         async function reportPost(postId) {
             if(!confirm("Report this post to admin?")) return;
             const reason = prompt("Reason (Optional):") || "Inappropriate content";
-            await fetch(`${API_URL}/report`, { method: "POST", headers: { "Authorization": token }, body: JSON.stringify({ postId, reason }) });
+            await fetch(`${API_URL}/report`, { 
+                method: "POST", 
+                headers: { "Authorization": token, "Content-Type": "application/json" }, 
+                body: JSON.stringify({ postId, reason }) 
+            });
             alert("Report sent.");
         }
-
+        
         async function deletePost(postId) {
             if(!confirm("ADMIN: Permanently delete this post?")) return;
-            const res = await fetch(`${API_URL}/delete`, { method: "POST", headers: { "Authorization": token }, body: JSON.stringify({ postId }) });
-            if(res.ok) { document.getElementById(`post-${postId}`).remove(); }
-            else alert("Failed to delete");
+            const res = await fetch(`${API_URL}/delete`, { 
+                method: "POST", 
+                headers: { "Authorization": token, "Content-Type": "application/json" }, 
+                body: JSON.stringify({ postId }) 
+            });
+            if(res.ok) { 
+                document.getElementById(`post-${postId}`).remove(); 
+            } else {
+                alert("Failed to delete");
+            }
         }
-
-        async function loadTop10() {
-            try {
-                const res = await fetch(`${API_URL}/top-posts?category=${currentCategory}`);
-                const posts = await res.json();
-                document.getElementById("top-posts-list").innerHTML = posts.map((post, i) => `
-                    <a href="?viewPost=${post.id}" target="_blank" class="top-post-item"><strong>#${i+1}</strong> ${post.content}</a>
-                `).join('');
-            } catch(e) { document.getElementById("top-posts-list").innerHTML = "Failed."; }
-        }
-
+        
+        // --- AUTH ---
         async function requestOtp() {
             const email = document.getElementById("email").value;
             if(!email) return alert("Enter email");
@@ -379,6 +443,7 @@
             if(res.ok) document.getElementById("otp-section").classList.remove("hidden");
             else alert("Error/Invalid Domain");
         }
+        
         async function verifyOtp() {
             const email = document.getElementById("email").value;
             const otp = document.getElementById("otp").value;
@@ -386,11 +451,15 @@
             if (res.ok) {
                 const data = await res.json();
                 localStorage.setItem("anon_token", data.token);
-                localStorage.setItem("is_admin", data.isAdmin); // Store Admin Status
+                localStorage.setItem("is_admin", data.isAdmin); 
                 location.reload(); 
             } else { alert("Incorrect OTP"); }
         }
-        function logout() { localStorage.clear(); location.reload(); }
+        
+        function logout() { 
+            localStorage.clear(); 
+            location.reload(); 
+        }
     </script>
 </body>
 </html>
