@@ -60,6 +60,9 @@
         .modal-box { background: var(--card-bg); padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         .close-btn { background: #fee2e2; color: #dc2626; border: none; padding: 6px 15px; border-radius: 4px; cursor: pointer; margin-top: 10px; width: 100%; font-weight:bold; }
 
+        /* NOTIFICATION BADGES */
+        .badge { background: #dc2626; color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.75em; margin-left: 5px; font-weight: bold;}
+        
         @media (max-width: 768px) {
             .container { flex-direction: column; padding: 10px; }
             .main-content { order: 1; width: 100%; }
@@ -117,7 +120,13 @@
                 <div class="nav-tabs">
                     <button id="btn-serious" class="nav-btn active" onclick="switchCategory('serious')">Serious</button>
                     <button id="btn-bakwaas" class="nav-btn" onclick="switchCategory('bakwaas')">Bakwaas</button>
-                    <button id="btn-reported" class="nav-btn hidden" onclick="switchCategory('reported')">🚨 Reports</button>
+                    
+                    <button id="btn-reported" class="nav-btn hidden" onclick="switchCategory('reported')">
+                        🚨 Posts <span id="badge-posts" class="badge hidden">0</span>
+                    </button>
+                    <button id="btn-reported-users" class="nav-btn hidden" onclick="switchCategory('reported_users')">
+                        👥 Users <span id="badge-users" class="badge hidden">0</span>
+                    </button>
                 </div>
             </div>
             
@@ -127,11 +136,7 @@
                 <button class="icon-btn" title="Report a User" onclick="openModal('report-modal')">🚩</button>
                 <button class="icon-btn" title="Toggle Dark Mode" onclick="toggleTheme()" id="theme-icon">🌙</button>
                 <button class="icon-btn" title="Logout" onclick="logout()" style="color:#dc2626; display:flex; align-items:center;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                        <polyline points="16 17 21 12 16 7"></polyline>
-                        <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                 </button>
             </div>
         </div>
@@ -191,6 +196,7 @@
             if (isAdmin) {
                 document.getElementById("btn-reported").classList.remove("hidden");
                 document.getElementById("btn-reported-users").classList.remove("hidden");
+                fetchAdminStats(); // <-- ADD THIS HERE!
             }
 
             if (singlePostId) loadSinglePost(singlePostId);
@@ -366,6 +372,31 @@
                 const users = await res.json();
                 renderReportedUsers(users);
             } catch (e) { console.error(e); }
+        }
+
+        async function fetchAdminStats() {
+            if (!isAdmin) return;
+            try {
+                const res = await fetch(`${API_URL}/admin/stats`, { headers: { "Authorization": token } });
+                const data = await res.json();
+                
+                const badgePosts = document.getElementById("badge-posts");
+                const badgeUsers = document.getElementById("badge-users");
+
+                if (data.posts > 0) {
+                    badgePosts.innerText = data.posts;
+                    badgePosts.classList.remove("hidden");
+                } else {
+                    badgePosts.classList.add("hidden");
+                }
+
+                if (data.users > 0) {
+                    badgeUsers.innerText = data.users;
+                    badgeUsers.classList.remove("hidden");
+                } else {
+                    badgeUsers.classList.add("hidden");
+                }
+            } catch (e) { console.error("Stats error", e); }
         }
 
         function renderReportedUsers(users) {
