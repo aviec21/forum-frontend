@@ -3,197 +3,196 @@
 <head>
     <title>Campus Forum</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📢</text></svg>">
+
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; background: #f0f2f5; }
-        
-        /* HEADER (Modified for Tabs) */
-        .header { background: white; padding: 10px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; height: 50px; }
-        .header-left { display: flex; align-items: center; gap: 20px; }
-        .logo { font-size: 1.2em; font-weight: bold; color: #333; margin-right: 10px; }
-        
-        /* TABS (Now inside Header) */
-        .nav-tabs { display: flex; gap: 5px; background: #f0f2f5; padding: 4px; border-radius: 6px; }
-        .nav-btn { border: none; background: none; padding: 6px 15px; cursor: pointer; font-weight: bold; font-size: 0.9em; border-radius: 4px; color: #666; }
-        .nav-btn.active { background: #fff; color: #000; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-        .nav-btn:hover { color: #000; }
+        /* 2. DARK MODE & VARIABLES */
+        :root {
+            --bg-color: #f0f2f5;
+            --text-color: #1f2937;
+            --card-bg: #ffffff;
+            --border-color: #ddd;
+            --secondary-text: #666;
+            --header-bg: #ffffff;
+            --input-bg: #ffffff;
+            --reply-bg: #f8f9fa;
+        }
+        [data-theme="dark"] {
+            --bg-color: #18191a;
+            --text-color: #e4e6eb;
+            --card-bg: #242526;
+            --border-color: #3e4042;
+            --secondary-text: #b0b3b8;
+            --header-bg: #242526;
+            --input-bg: #3a3b3c;
+            --reply-bg: #3a3b3c;
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; background: var(--bg-color); color: var(--text-color); transition: background 0.3s; }
 
-        .logout-btn { background: #fee2e2; color: #dc2626; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85em; font-weight: bold; }
-
+        /* LAYOUT */
+        .header { background: var(--header-bg); padding: 10px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; height: 50px; }
+        .logo { font-size: 1.2em; font-weight: bold; color: var(--text-color); margin-right: 10px; }
         .container { max-width: 1000px; margin: 20px auto; display: flex; gap: 20px; padding: 0 20px; }
         .main-content { flex: 3; } 
-        .sidebar { flex: 1; background: white; padding: 15px; border-radius: 8px; height: fit-content; position: sticky; top: 80px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); min-width: 0 }
-        
-        /* SEARCH & INPUTS */
-        .search-container { display: flex; gap: 5px; margin-bottom: 20px; }
-        .search-input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; height: 40px; box-sizing: border-box; }
-        .search-btn { width: 50px; height: 40px; background: #333; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1.2em; display: flex; align-items: center; justify-content: center; }
+        .sidebar { flex: 1; background: var(--card-bg); padding: 15px; border-radius: 8px; height: fit-content; position: sticky; top: 80px; min-width: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 
-        /* POSTS & TEXT WRAPPING FIX */
-        .post { background: white; border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .post-content { 
-            font-size: 1.1em; 
-            margin-bottom: 10px; 
-            color: #1f2937;
-            white-space: pre-wrap; /* Preserves new lines */
-            overflow-wrap: anywhere; /* FIX: Breaks long words like fffffff */
-            word-break: break-word; 
-        }
-        .meta { color: #888; font-size: 0.8em; margin-bottom: 8px; }
+        /* TABS & BUTTONS */
+        .nav-tabs { display: flex; gap: 5px; background: var(--bg-color); padding: 4px; border-radius: 6px; }
+        .nav-btn { border: none; background: none; padding: 6px 15px; cursor: pointer; font-weight: bold; font-size: 0.9em; border-radius: 4px; color: var(--secondary-text); }
+        .nav-btn.active { background: var(--card-bg); color: var(--text-color); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .logout-btn { background: #fee2e2; color: #dc2626; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85em; font-weight: bold; }
+        .theme-btn { background: none; border: none; cursor: pointer; font-size: 1.2em; margin-right: 10px; }
+
+        /* POSTS */
+        .post { background: var(--card-bg); border-radius: 8px; padding: 15px; margin-bottom: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .post-content { font-size: 1.1em; margin-bottom: 10px; color: var(--text-color); white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; }
+        .meta { color: var(--secondary-text); font-size: 0.8em; margin-bottom: 8px; display: flex; justify-content: space-between; }
         
-        /* REPLY & VOTE */
-        .reply-section { background: #f8f9fa; padding: 10px; border-radius: 5px; margin-top: 10px; }
-        .reply-item { border-top: 1px solid #eee; padding: 8px 0; font-size: 0.9em; overflow-wrap: anywhere; }
-        .vote-row { display: flex; gap: 15px; margin-top: 5px; }
-        
-        .vote-btn { background: none; border: none; cursor: pointer; color: #888; font-size: 0.85em; padding: 0; transition: color 0.2s; }
-        .vote-btn:hover { color: #555; }
-        .vote-btn.voted-like { color: #2563eb; font-weight: bold; } /* Blue for Like */
-        .vote-btn.voted-dislike { color: #dc2626; font-weight: bold; } /* Red for Dislike */
+        /* 3. SIDEBAR TOP 10 (Distinct Blue Links) */
+        .top-post-item { display: block; padding: 8px 0; border-bottom: 1px solid var(--border-color); color: #2563eb; text-decoration: underline; font-size: 0.9em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+        .top-post-item:hover { color: #1d4ed8; }
 
         /* UTILS */
-        textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; resize: vertical; font-family: inherit; }
+        .search-container { display: flex; gap: 5px; margin-bottom: 20px; }
+        textarea, input { background: var(--input-bg); color: var(--text-color); border: 1px solid var(--border-color); width: 100%; padding: 10px; border-radius: 4px; box-sizing: border-box; }
+        .search-btn { width: 50px; background: #333; color: white; border: none; border-radius: 4px; cursor: pointer; }
         .post-btn { background: #2563eb; color: white; border: none; padding: 6px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; }
-        .post-btn:hover { background: #1d4ed8; }
-        .load-more-btn { width: 100%; padding: 10px; background: #e5e7eb; border: none; margin-top: 10px; cursor: pointer; font-weight: bold; border-radius: 4px; color: #374151; }
-        .hidden { display: none !important; }
-
-        /* SIDEBAR ITEMS (Add this missing block!) */
-        .top-post-item { 
-            display: block; padding: 8px 0; border-bottom: 1px solid #eee; color: #333; text-decoration: none; font-size: 0.9em; 
-            
-            /* These lines cut off long text nicely with "..." */
-            white-space: nowrap; 
-            overflow: hidden; 
-            text-overflow: ellipsis; 
-        }
-        .top-post-item:hover { color: #2563eb; }
-
-        /* RESPONSIVE LAYOUT (Mobile Optimization) */
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column; /* Stack items vertically */
-                padding: 10px;          /* Less padding on small screens */
-            }
-
-            .main-content {
-                order: 1; /* Feed comes FIRST */
-                width: 100%;
-            }
-
-            .sidebar {
-                order: 2; /* Sidebar moves to the BOTTOM */
-                width: 100%;
-                margin-top: 30px; /* Add spacing so it doesn't touch the last post */
-                position: static; /* Remove sticky on mobile so it sits naturally at the bottom */
-                box-shadow: none; /* Optional: Cleaner look on mobile */
-                border-top: 1px solid var(--border-color); /* Add a divider line */
-                padding-top: 20px;
-            }
-            
-            /* Adjust Header for mobile */
-            .header {
-                padding: 10px; /* Tighter header */
-            }
-            .logo {
-                font-size: 1em; /* Slightly smaller logo text */
-            }
-            .nav-btn {
-                padding: 5px 10px; /* Smaller tabs */
-            }
-        }
-
         
+        /* ACTIONS (Vote/Report/Delete) */
+        .action-bar { display: flex; gap: 15px; margin-top: 10px; align-items: center; }
+        .vote-btn { background: none; border: none; cursor: pointer; color: var(--secondary-text); font-size: 0.9em; padding: 0; display: flex; align-items: center; gap: 5px; }
+        .vote-btn:hover { color: var(--text-color); }
+        .vote-btn.voted-like { color: #2563eb; font-weight: bold; }
+        .vote-btn.voted-dislike { color: #dc2626; font-weight: bold; }
+        
+        .report-btn { color: #999; font-size: 0.8em; cursor: pointer; border: none; background: none; }
+        .report-btn:hover { text-decoration: underline; color: #dc2626; }
+        .delete-btn { color: white; background: #dc2626; padding: 3px 8px; font-size: 0.75em; border-radius: 4px; cursor: pointer; border: none; margin-left: auto; }
+
+        /* REPLIES */
+        .reply-section { background: var(--reply-bg); padding: 10px; border-radius: 5px; margin-top: 10px; }
+        .reply-item { border-top: 1px solid var(--border-color); padding: 8px 0; font-size: 0.9em; overflow-wrap: anywhere; }
+        
+        .hidden { display: none !important; }
+        .load-more-btn { width: 100%; padding: 10px; background: var(--border-color); border: none; margin-top: 10px; cursor: pointer; font-weight: bold; border-radius: 4px; color: var(--text-color); }
+
+        /* 4. MOBILE OPTIMIZATION (Sidebar Bottom) */
+        @media (max-width: 768px) {
+            .container { flex-direction: column; padding: 10px; }
+            .main-content { order: 1; width: 100%; }
+            .sidebar { order: 2; width: 100%; margin-top: 30px; position: static; border-top: 1px solid var(--border-color); padding-top: 20px; }
+            .mobile-only-link { display: block !important; }
+        }
+        @media (min-width: 769px) { .mobile-only-link { display: none; } }
     </style>
 </head>
 <body>
 
     <div id="login-page" style="max-width:400px; margin: 100px auto; background:white; padding:30px; border-radius:10px; text-align:center; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-        <h2>🔒 Campus Login</h2>
-        <input type="email" id="email" placeholder="student@iimidr.ac.in" style="width:100%; padding:10px; margin-bottom:10px; box-sizing:border-box;">
+        <h2 style="color:#333;">🔒 Campus Login</h2>
+        <input type="email" id="email" placeholder="student@iimidr.ac.in" style="margin-bottom:10px;">
         <button class="post-btn" style="width:100%;" onclick="requestOtp()">Get Code</button>
-        <div id="otp-section" class="hidden" style="margin-top:15px; border-top:1px solid #eee; padding-top:15px;">
-            <input type="text" id="otp" placeholder="Enter 6-digit Code" style="width:100%; padding:10px; margin-bottom:10px; box-sizing:border-box;">
+        <div id="otp-section" class="hidden" style="margin-top:15px;">
+            <input type="text" id="otp" placeholder="Enter Code" style="margin-bottom:10px;">
             <button class="post-btn" style="width:100%;" onclick="verifyOtp()">Enter Forum</button>
         </div>
     </div>
 
     <div id="main-page" class="hidden">
-        
         <div class="header">
             <div class="header-left">
                 <div class="logo">📢 Campus Board</div>
-                <div class="nav-tabs" id="header-tabs">
+                <div class="nav-tabs">
                     <button id="btn-serious" class="nav-btn active" onclick="switchCategory('serious')">Serious 🎓</button>
                     <button id="btn-bakwaas" class="nav-btn" onclick="switchCategory('bakwaas')">Bakwaas 🤪</button>
                 </div>
             </div>
-            <button class="logout-btn" onclick="logout()">Logout</button>
+            <div style="display:flex; align-items:center;">
+                <button class="theme-btn" onclick="toggleTheme()" id="theme-icon">🌙</button>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
         </div>
 
         <div class="container">
+            <div class="mobile-only-link" style="width:100%; text-align:center; margin-bottom:15px;">
+                <a href="#top-posts-list" style="color:#2563eb; text-decoration:none; font-size:0.95em; font-weight:bold;">⬇️ Jump to Top 10</a>
+            </div>
+
             <div class="main-content">
-                
                 <div class="search-container">
-                    <input type="text" id="search-box" class="search-input" placeholder="Search topics..." onkeydown="handleEnter(event, triggerSearch)">
+                    <input type="text" id="search-box" placeholder="Search topics..." onkeydown="handleEnter(event, triggerSearch)">
                     <button class="search-btn" onclick="triggerSearch()">🔍</button>
                 </div>
 
-                <div id="create-post-container" style="background:white; padding:15px; border-radius:8px; margin-bottom:20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                    <textarea id="new-post-content" rows="3" placeholder="Write something anonymous... (Press Enter to post)" onkeydown="handleEnter(event, createPost)"></textarea>
+                <div id="create-post-container" style="background:var(--card-bg); padding:15px; border-radius:8px; margin-bottom:20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <textarea id="new-post-content" rows="3" placeholder="Write something..." onkeydown="handleEnter(event, createPost)"></textarea>
                     <div style="display:flex; justify-content: flex-end; margin-top:10px;">
                         <button class="post-btn" onclick="createPost()">Post</button>
                     </div>
                 </div>
 
                 <div id="posts-container"></div>
-                <button id="load-more-btn" class="load-more-btn hidden" onclick="loadMore()">Load More posts...</button>
+                <button id="load-more-btn" class="load-more-btn hidden" onclick="loadMore()">Load More...</button>
             </div>
 
-            <div class="sidebar">
-                <h3 style="margin-top:0;">🔥 Top 10</h3>
+            <div class="sidebar" id="sidebar-box">
+                <h3 style="margin-top:0; color:var(--text-color);">🔥 Top 10</h3>
                 <div id="top-posts-list">Loading...</div>
             </div>
         </div>
     </div>
 
     <script>
-        // *** UPDATE YOUR WORKER URL HERE ***
-        const API_URL = "https://dry-haze-494a.agiri2016.workers.dev/api"; 
+        // *** UPDATE YOUR WORKER URL ***
+        const API_URL = "https://your-worker.workers.dev/api"; 
 
         let token = localStorage.getItem("anon_token");
+        let isAdmin = localStorage.getItem("is_admin") === "true"; // Track Admin Status
         let currentCategory = "serious";
         let currentOffset = 0;
         let currentSearch = "";
-
+        
         const urlParams = new URLSearchParams(window.location.search);
         const singlePostId = urlParams.get('viewPost');
 
+        // INIT
         if (token) {
             document.getElementById("login-page").classList.add("hidden");
             document.getElementById("main-page").classList.remove("hidden");
-            if (singlePostId) {
-                loadSinglePost(singlePostId);
-            } else {
-                initialLoad();
+            
+            // Apply Theme
+            if(localStorage.getItem("theme") === "dark") {
+                document.body.setAttribute("data-theme", "dark");
+                document.getElementById("theme-icon").innerText = "☀️";
             }
+
+            if (singlePostId) loadSinglePost(singlePostId);
+            else initialLoad();
             loadTop10();
         }
 
-        // --- ENTER KEY HANDLER ---
         function handleEnter(e, callback, param) {
             if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault(); // Stop new line
-                callback(param); // Submit
+                e.preventDefault();
+                callback(param);
             }
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            const isDark = body.getAttribute("data-theme") === "dark";
+            body.setAttribute("data-theme", isDark ? "light" : "dark");
+            document.getElementById("theme-icon").innerText = isDark ? "🌙" : "☀️";
+            localStorage.setItem("theme", isDark ? "light" : "dark");
         }
 
         function switchCategory(cat) {
             currentCategory = cat;
-            currentSearch = ""; 
+            currentSearch = "";
             document.getElementById("search-box").value = "";
             document.getElementById("btn-serious").className = cat === 'serious' ? 'nav-btn active' : 'nav-btn';
             document.getElementById("btn-bakwaas").className = cat === 'bakwaas' ? 'nav-btn active' : 'nav-btn';
-            
             if(singlePostId) window.location.href = window.location.pathname; 
             initialLoad();
             loadTop10();
@@ -203,6 +202,11 @@
             currentOffset = 0;
             document.getElementById("posts-container").innerHTML = ""; 
             fetchPosts();
+        }
+
+        function triggerSearch() {
+            currentSearch = document.getElementById("search-box").value;
+            initialLoad();
         }
 
         function loadMore() {
@@ -219,19 +223,16 @@
                 const res = await fetch(url);
                 const posts = await res.json();
                 renderPosts(posts);
-                const btn = document.getElementById("load-more-btn");
-                if(posts.length < 5) btn.classList.add("hidden");
-                else btn.classList.remove("hidden");
+                document.getElementById("load-more-btn").classList.toggle("hidden", posts.length < 5);
             } catch (e) { console.error(e); }
         }
 
         async function loadSinglePost(id) {
-            // HIDE ELEMENTS FOR SINGLE VIEW
-            document.getElementById("header-tabs").classList.add("hidden"); // Hide tabs in header
+            document.querySelector(".header").style.display = 'none'; 
             document.querySelector(".search-container").classList.add("hidden");
-            document.getElementById("load-more-btn").classList.add("hidden");
-            document.getElementById("create-post-container").classList.add("hidden"); // Hide Post Box
-
+            document.getElementById("create-post-container").classList.add("hidden");
+            document.getElementById("sidebar-box").classList.add("hidden"); // Hide sidebar in single view
+            
             const res = await fetch(`${API_URL}/posts?id=${id}`);
             const posts = await res.json();
             renderPosts(posts);
@@ -245,26 +246,33 @@
             }
 
             const html = posts.map(post => `
-                <div class="post">
-                    <div class="meta">User ${post.random_user_id} • ${new Date(post.created_at * 1000).toLocaleDateString()}</div>
+                <div class="post" id="post-${post.id}">
+                    <div class="meta">
+                        <span>User ${post.random_user_id} • ${new Date(post.created_at * 1000).toLocaleDateString()}</span>
+                        ${isAdmin ? `<button class="delete-btn" onclick="deletePost(${post.id})">DELETE</button>` : ''}
+                    </div>
                     <div class="post-content">${post.content}</div>
                     
+                    <div class="action-bar">
+                        <button id="like-post-${post.id}" class="vote-btn" onclick="vote(${post.id}, 'like', 'post')">👍 ${post.likes || 0}</button>
+                        <button id="dislike-post-${post.id}" class="vote-btn" onclick="vote(${post.id}, 'dislike', 'post')">👎 ${post.dislikes || 0}</button>
+                        <button class="report-btn" onclick="reportPost(${post.id})">⚠️ Report</button>
+                    </div>
+
                     <div class="reply-section">
                         <div id="reply-list-${post.id}">
                             ${post.replies && post.replies.length > 0 ? post.replies.map(r => `
                                 <div class="reply-item">
-                                    <span style="font-weight:bold; color:#4b5563;">User ${r.random_user_id}:</span> ${r.content}
-                                    <div class="vote-row">
-                                        <button id="like-btn-${r.id}" class="vote-btn" onclick="vote(${r.id}, 'like')">👍 ${r.likes || 0}</button>
-                                        <button id="dislike-btn-${r.id}" class="vote-btn" onclick="vote(${r.id}, 'dislike')">👎 ${r.dislikes || 0}</button>
+                                    <span style="font-weight:bold; color:var(--secondary-text);">User ${r.random_user_id}:</span> ${r.content}
+                                    <div class="action-bar" style="margin-top:5px; font-size:0.8em;">
+                                        <button id="like-reply-${r.id}" class="vote-btn" onclick="vote(${r.id}, 'like', 'reply')">👍 ${r.likes || 0}</button>
+                                        <button id="dislike-reply-${r.id}" class="vote-btn" onclick="vote(${r.id}, 'dislike', 'reply')">👎 ${r.dislikes || 0}</button>
                                     </div>
                                 </div>
-                            `).join('') : ''} </div>
-                        
+                            `).join('') : ''}
+                        </div>
                         <div style="display:flex; gap:8px; margin-top:15px;">
-                            <textarea id="reply-input-${post.id}" rows="1" placeholder="Reply... (Enter to submit)" 
-                                      style="padding:8px; border:1px solid #ddd; border-radius:4px; flex:1;"
-                                      onkeydown="handleEnter(event, reply, ${post.id})"></textarea>
+                            <input id="reply-input-${post.id}" placeholder="Reply..." onkeydown="handleEnter(event, reply, ${post.id})">
                             <button onclick="reply(${post.id})" style="background:#555; color:white; border:none; padding:5px 15px; border-radius:4px; cursor:pointer;">Reply</button>
                         </div>
                     </div>
@@ -274,86 +282,43 @@
             container.insertAdjacentHTML('beforeend', html);
         }
 
-        async function loadTop10() {
-            const list = document.getElementById("top-posts-list");
-            
-            try {
-                const res = await fetch(`${API_URL}/top-posts?category=${currentCategory}`);
-                
-                // Safety check for server errors
-                if (!res.ok) throw new Error("Server Error");
-                
-                const posts = await res.json();
-
-                // Handle empty list
-                if (!posts || posts.length === 0) {
-                    list.innerHTML = "<div style='color:#999; padding:10px 0; font-size:0.9em;'>No active posts.</div>";
-                    return;
-                }
-
-                // RENDER LIST (Clean vertical list, NO scores)
-                list.innerHTML = posts.map((post, index) => `
-                    <a href="?viewPost=${post.id}" target="_blank" class="top-post-item">
-                        <strong>#${index + 1}</strong> ${post.content}
-                    </a>
-                `).join('');
-                
-            } catch (e) {
-                console.error(e);
-                list.innerHTML = "<div style='color:red; font-size:0.8em;'>Failed to load.</div>";
-            }
-        }
-        
-        
-        async function vote(replyId, type) {
-            const btnId = type === 'like' ? `like-btn-${replyId}` : `dislike-btn-${replyId}`;
-            const otherBtnId = type === 'like' ? `dislike-btn-${replyId}` : `like-btn-${replyId}`;
+        async function vote(id, type, target) {
+            // target is 'post' or 'reply'
+            const btnId = type === 'like' ? `like-${target}-${id}` : `dislike-${target}-${id}`;
+            const otherBtnId = type === 'like' ? `dislike-${target}-${id}` : `like-${target}-${id}`;
             const btn = document.getElementById(btnId);
             const otherBtn = document.getElementById(otherBtnId);
-            
-            // 1. Send Request
+
             const res = await fetch(`${API_URL}/vote`, {
                 method: "POST",
                 headers: { "Authorization": token, "Content-Type": "application/json" },
-                body: JSON.stringify({ replyId, type })
+                body: JSON.stringify({ id, type, target })
             });
-
             const text = await res.text();
 
-            // 2. Handle UI based on Server Response
-            // Helper to get number: "👍 5" -> 5
             const getNum = (el) => parseInt(el.innerText.split(" ")[1]) || 0;
             const setNum = (el, icon, num) => el.innerText = `${icon} ${num}`;
+            const icon = type === 'like' ? '👍' : '👎';
+            const otherIcon = type === 'like' ? '👎' : '👍';
 
             if (text === "Voted") {
-                // Add 1 to clicked
-                setNum(btn, type==='like'?'👍':'👎', getNum(btn) + 1);
-                btn.classList.add(type === 'like' ? 'voted-like' : 'voted-dislike');
-            } 
-            else if (text === "Removed") {
-                // Remove 1 from clicked
-                setNum(btn, type==='like'?'👍':'👎', Math.max(0, getNum(btn) - 1));
-                btn.classList.remove('voted-like', 'voted-dislike');
-            } 
-            else if (text === "Switched") {
-                // Remove 1 from OTHER, Add 1 to THIS
-                setNum(otherBtn, type==='like'?'👎':'👍', Math.max(0, getNum(otherBtn) - 1));
-                otherBtn.classList.remove('voted-like', 'voted-dislike');
-
-                setNum(btn, type==='like'?'👍':'👎', getNum(btn) + 1);
-                btn.classList.add(type === 'like' ? 'voted-like' : 'voted-dislike');
+                setNum(btn, icon, getNum(btn) + 1);
+                btn.classList.add(`voted-${type}`);
+            } else if (text === "Removed") {
+                setNum(btn, icon, Math.max(0, getNum(btn) - 1));
+                btn.classList.remove(`voted-${type}`);
+            } else if (text === "Switched") {
+                setNum(otherBtn, otherIcon, Math.max(0, getNum(otherBtn) - 1));
+                otherBtn.classList.remove(`voted-${type === 'like' ? 'dislike' : 'like'}`);
+                setNum(btn, icon, getNum(btn) + 1);
+                btn.classList.add(`voted-${type}`);
             }
         }
 
         async function createPost() {
             const content = document.getElementById("new-post-content").value;
             if(!content.trim()) return;
-            
-            await fetch(`${API_URL}/posts`, {
-                method: "POST",
-                headers: { "Authorization": token, "Content-Type": "application/json" },
-                body: JSON.stringify({ content, category: currentCategory })
-            });
+            await fetch(`${API_URL}/posts`, { method: "POST", headers: { "Authorization": token }, body: JSON.stringify({ content, category: currentCategory }) });
             document.getElementById("new-post-content").value = "";
             initialLoad();
             loadTop10();
@@ -363,48 +328,56 @@
             const input = document.getElementById(`reply-input-${postId}`);
             const content = input.value;
             if(!content.trim()) return;
-
-            // 1. Disable input briefly so user doesn't double-click
             input.disabled = true;
 
-            // 2. Send to Server & Wait for the new ID
-            const res = await fetch(`${API_URL}/reply`, {
-                method: "POST",
-                headers: { "Authorization": token, "Content-Type": "application/json" },
-                body: JSON.stringify({ postId, content })
-            });
-            
-            const data = await res.json(); // Server returns: { id: 123 }
+            const res = await fetch(`${API_URL}/reply`, { method: "POST", headers: { "Authorization": token }, body: JSON.stringify({ postId, content }) });
+            const data = await res.json();
 
-            // 3. Append HTML (Now with the REAL ID for buttons!)
             const replyList = document.getElementById(`reply-list-${postId}`);
-            const myUserId = token || "Me"; 
-
             const newHTML = `
-                <div class="reply-item" style="background-color:#f0fdf4;">
-                    <span style="font-weight:bold; color:#4b5563;">User ${myUserId}:</span> ${content}
-                    <div class="vote-row">
-                        <button id="like-btn-${data.id}" class="vote-btn" onclick="vote(${data.id}, 'like')">👍 0</button>
-                        <button id="dislike-btn-${data.id}" class="vote-btn" onclick="vote(${data.id}, 'dislike')">👎 0</button>
+                <div class="reply-item" style="background-color:rgba(37, 99, 235, 0.1);">
+                    <span style="font-weight:bold; color:var(--secondary-text);">User Me:</span> ${content}
+                    <div class="action-bar" style="margin-top:5px; font-size:0.8em;">
+                        <button id="like-reply-${data.id}" class="vote-btn" onclick="vote(${data.id}, 'like', 'reply')">👍 0</button>
+                        <button id="dislike-reply-${data.id}" class="vote-btn" onclick="vote(${data.id}, 'dislike', 'reply')">👎 0</button>
                     </div>
-                </div>
-            `;
-            
+                </div>`;
             replyList.insertAdjacentHTML('beforeend', newHTML);
-            
-            // 4. Reset Input
             input.value = "";
             input.disabled = false;
             input.focus();
         }
 
-        // --- AUTH ---
+        async function reportPost(postId) {
+            if(!confirm("Report this post to admin?")) return;
+            const reason = prompt("Reason (Optional):") || "Inappropriate content";
+            await fetch(`${API_URL}/report`, { method: "POST", headers: { "Authorization": token }, body: JSON.stringify({ postId, reason }) });
+            alert("Report sent.");
+        }
+
+        async function deletePost(postId) {
+            if(!confirm("ADMIN: Permanently delete this post?")) return;
+            const res = await fetch(`${API_URL}/delete`, { method: "POST", headers: { "Authorization": token }, body: JSON.stringify({ postId }) });
+            if(res.ok) { document.getElementById(`post-${postId}`).remove(); }
+            else alert("Failed to delete");
+        }
+
+        async function loadTop10() {
+            try {
+                const res = await fetch(`${API_URL}/top-posts?category=${currentCategory}`);
+                const posts = await res.json();
+                document.getElementById("top-posts-list").innerHTML = posts.map((post, i) => `
+                    <a href="?viewPost=${post.id}" target="_blank" class="top-post-item"><strong>#${i+1}</strong> ${post.content}</a>
+                `).join('');
+            } catch(e) { document.getElementById("top-posts-list").innerHTML = "Failed."; }
+        }
+
         async function requestOtp() {
             const email = document.getElementById("email").value;
-            if(!email) return alert("Please enter email");
+            if(!email) return alert("Enter email");
             const res = await fetch(`${API_URL}/login`, { method: "POST", body: JSON.stringify({ email }) });
             if(res.ok) document.getElementById("otp-section").classList.remove("hidden");
-            else alert("Error");
+            else alert("Error/Invalid Domain");
         }
         async function verifyOtp() {
             const email = document.getElementById("email").value;
@@ -413,10 +386,11 @@
             if (res.ok) {
                 const data = await res.json();
                 localStorage.setItem("anon_token", data.token);
+                localStorage.setItem("is_admin", data.isAdmin); // Store Admin Status
                 location.reload(); 
             } else { alert("Incorrect OTP"); }
         }
-        function logout() { localStorage.removeItem("anon_token"); location.reload(); }
+        function logout() { localStorage.clear(); location.reload(); }
     </script>
 </body>
 </html>
