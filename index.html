@@ -350,45 +350,57 @@
                 return;
             }
         
-            const html = posts.map(post => `
-                <div class="post" id="post-${post.id}">
-                    <div class="meta">
-                        <span>User ${post.random_user_id} • ${new Date(post.created_at * 1000).toLocaleDateString()}</span>
-                        ${isAdmin ? `<button class="delete-btn" onclick="deletePost(${post.id})">DELETE</button>` : ''}
-                    </div>
-                    <div class="post-content">${post.content}</div>
-                    
-                    ${post.report_count ? `
-                        <div style="background:#fee2e2; color:#dc2626; padding:10px; border-radius:4px; font-size:0.85em; margin-bottom:10px; border:1px solid #f87171;">
-                            <strong>🚨 Reported ${post.report_count} times:</strong> ${post.report_reasons}
+            const html = posts.map(post => {
+                // Use the display_name if it exists, otherwise fallback to the ID
+                const authorName = post.display_name || "LegacyUser";
+        
+                return `
+                    <div class="post" id="post-${post.id}">
+                        <div class="meta">
+                            <span>
+                                <strong>${authorName}</strong> • ${new Date(post.created_at * 1000).toLocaleDateString()}
+                            </span>
+                            <div style="display:flex; gap:5px;">
+                                ${isAdmin ? `
+                                    <button class="ban-btn" onclick="adminBanUser('${authorName}')">BAN</button>
+                                    <button class="delete-btn" onclick="deletePost(${post.id})">DELETE</button>
+                                ` : ''}
+                            </div>
                         </div>
-                    ` : ''}
+                        <div class="post-content">${post.content}</div>
+                        
+                        ${post.report_count ? `
+                            <div style="background:#fee2e2; color:#dc2626; padding:10px; border-radius:4px; font-size:0.85em; margin-bottom:10px; border:1px solid #f87171;">
+                                <strong>🚨 Reported ${post.report_count} times:</strong> ${post.report_reasons}
+                            </div>
+                        ` : ''}
         
-                    <div class="action-bar">
-                        <button id="like-post-${post.id}" class="vote-btn" onclick="vote(${post.id}, 'like', 'post')">👍 ${post.likes || 0}</button>
-                        <button id="dislike-post-${post.id}" class="vote-btn" onclick="vote(${post.id}, 'dislike', 'post')">👎 ${post.dislikes || 0}</button>
-                        <button class="report-btn" onclick="reportPost(${post.id})">⚠️ Report</button>
-                    </div>
+                        <div class="action-bar">
+                            <button id="like-post-${post.id}" class="vote-btn" onclick="vote(${post.id}, 'like', 'post')">👍 ${post.likes || 0}</button>
+                            <button id="dislike-post-${post.id}" class="vote-btn" onclick="vote(${post.id}, 'dislike', 'post')">👎 ${post.dislikes || 0}</button>
+                            <button class="report-btn" onclick="reportPost(${post.id})">⚠️ Report</button>
+                        </div>
         
-                    <div class="reply-section">
-                        <div id="reply-list-${post.id}">
-                            ${post.replies && post.replies.length > 0 ? post.replies.map(r => `
-                                <div class="reply-item">
-                                    <span style="font-weight:bold; color:var(--secondary-text);">User ${r.random_user_id}:</span> ${r.content}
-                                    <div class="action-bar" style="margin-top:5px; font-size:0.8em;">
-                                        <button id="like-reply-${r.id}" class="vote-btn" onclick="vote(${r.id}, 'like', 'reply')">👍 ${r.likes || 0}</button>
-                                        <button id="dislike-reply-${r.id}" class="vote-btn" onclick="vote(${r.id}, 'dislike', 'reply')">👎 ${r.dislikes || 0}</button>
+                        <div class="reply-section">
+                            <div id="reply-list-${post.id}">
+                                ${post.replies && post.replies.length > 0 ? post.replies.map(r => `
+                                    <div class="reply-item">
+                                        <span style="font-weight:bold; color:var(--secondary-text);">${r.display_name || 'User'}:</span> ${r.content}
+                                        <div class="action-bar" style="margin-top:5px; font-size:0.8em;">
+                                            <button id="like-reply-${r.id}" class="vote-btn" onclick="vote(${r.id}, 'like', 'reply')">👍 ${r.likes || 0}</button>
+                                            <button id="dislike-reply-${r.id}" class="vote-btn" onclick="vote(${r.id}, 'dislike', 'reply')">👎 ${r.dislikes || 0}</button>
+                                        </div>
                                     </div>
-                                </div>
-                            `).join('') : ''}
-                        </div>
-                        <div style="display:flex; gap:8px; margin-top:15px;">
-                            <input id="reply-input-${post.id}" style="padding:8px; border:1px solid var(--border-color); border-radius:4px; flex:1; background:var(--input-bg); color:var(--text-color);" placeholder="Reply..." onkeydown="handleEnter(event, reply, ${post.id})">
-                            <button onclick="reply(${post.id})" style="background:#555; color:white; border:none; padding:5px 15px; border-radius:4px; cursor:pointer;">Reply</button>
+                                `).join('') : ''}
+                            </div>
+                            <div style="display:flex; gap:8px; margin-top:15px;">
+                                <input id="reply-input-${post.id}" style="padding:8px; border:1px solid var(--border-color); border-radius:4px; flex:1; background:var(--input-bg); color:var(--text-color);" placeholder="Reply..." onkeydown="handleEnter(event, reply, ${post.id})">
+                                <button onclick="reply(${post.id})" style="background:#555; color:white; border:none; padding:5px 15px; border-radius:4px; cursor:pointer;">Reply</button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
             
             container.insertAdjacentHTML('beforeend', html);
         }
