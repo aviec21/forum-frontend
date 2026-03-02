@@ -95,6 +95,15 @@
             
             .mobile-only-link { display: flex !important; justify-content: flex-end; width: 100%; margin-bottom: 15px; }
             .jump-btn { display: inline-block; padding: 10px 15px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; color: #2563eb; font-weight: bold; text-decoration: none; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+            .dropdown-content {
+        position: fixed !important; /* Fixed to the screen, not the button */
+        top: 60px; /* Right below the 60px header */
+        right: 10px;
+        left: 10px; /* Stretch across most of the screen */
+        width: auto;
+        max-width: none;
+        z-index: 3000; /* Higher than the mobile menu */
+    }
         }
         
         @media (min-width: 769px) { 
@@ -161,7 +170,8 @@
                 <h3 style="margin:0;">Menu</h3>
                 <button class="icon-btn" onclick="toggleMobileMenu()">✕</button>
             </div>
-            
+
+            <button class="mob-nav-btn" onclick="toggleMobileMenu(); toggleDropdown('announce-drop');">📢 Announcements</button>
             <button id="mob-btn-serious" class="mob-nav-btn active" onclick="switchCategory('serious')">🎓 Serious</button>
             <button id="mob-btn-bakwaas" class="mob-nav-btn" onclick="switchCategory('bakwaas')">🤪 Bakwaas</button>
             <button id="mob-btn-reported" class="mob-nav-btn hidden" onclick="switchCategory('reported')">🚨 Reported Posts <span id="mob-badge-posts" class="badge hidden">0</span></button>
