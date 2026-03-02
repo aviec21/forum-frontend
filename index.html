@@ -118,6 +118,19 @@
         </div>
     </div>
 
+    <div id="msg-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h2>📢 Announcements</h2>
+            <div id="admin-msg-display" style="padding:15px; background:var(--reply-bg); border-radius:8px; margin-bottom:15px; text-align:left; font-size:0.95em; white-space:pre-wrap;">Loading...</div>
+            
+            <div id="admin-msg-editor" class="hidden">
+                <textarea id="admin-msg-input" rows="3" placeholder="Write new announcement to all users..."></textarea>
+                <button class="post-btn" style="width:100%; margin-top:5px; background:#000;" onclick="saveAdminMessage()">Post to Everyone</button>
+            </div>
+            <button class="close-btn" onclick="closeModals()">Close</button>
+        </div>
+    </div>
+    
     <div id="profile-modal" class="modal-overlay hidden">
         <div class="modal-box">
             <h2>👤 My Profile</h2>
@@ -147,6 +160,9 @@
             <input type="text" id="otp" placeholder="Enter Code" style="margin-bottom:10px;">
             <button class="post-btn" style="width:100%;" onclick="verifyOtp()">Enter Forum</button>
         </div>
+        <div style="margin-top: 20px; font-size: 0.85em; color: var(--secondary-text); border-top: 1px solid #ddd; padding-top: 10px;">
+            Banned? <a href="mailto:forum.bot.iimi@gmail.com?subject=Ban%20Appeal%20-%20Campus%20Board" style="color: #2563eb; font-weight: bold; text-decoration:none;">Appeal to Admin</a>
+        </div>
     </div>
 
     <div id="main-page" class="hidden">
@@ -164,6 +180,8 @@
                 </div>
                 <div class="header-icons">
                     <button class="icon-btn" title="About Us" onclick="openModal('about-modal')">ℹ️</button>
+                    <button class="icon-btn" title="Announcements" onclick="openMsgModal()">📢<span id="badge-msg" class="badge hidden" style="background:#2563eb;">!</span></button>
+                    <button class="mob-nav-btn" onclick="toggleMobileMenu(); openMsgModal()">📢 Announcements <span id="mob-badge-msg" class="badge hidden" style="background:#2563eb;">!</span></button>
                     <button class="icon-btn" title="My Profile" onclick="openModal('profile-modal')">👤</button>
                     <button class="icon-btn" title="Report a User" onclick="openModal('report-modal')">🚩</button>
                     <button class="icon-btn" title="Toggle Dark Mode" onclick="toggleTheme()" id="theme-icon">🌙</button>
@@ -225,7 +243,8 @@
 
     <script>
         const API_URL = "https://dry-haze-494a.agiri2016.workers.dev/api"; 
-
+        const formatTime = (ts) => ts ? new Date(ts * 1000).toLocaleString([], { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : "Just now";
+        
         let token = localStorage.getItem("anon_token");
         let myUsername = localStorage.getItem("my_username") || "Unknown";
         let isAdmin = localStorage.getItem("is_admin") === "true"; 
@@ -246,6 +265,9 @@
                 document.getElementById("theme-icon").innerText = "☀️";
             }
 
+            // Always check for new Admin Announcements for every user
+            fetchAdminMessage();
+            
             if (isAdmin) {
                 // Desktop
                 document.getElementById("btn-reported").classList.remove("hidden");
@@ -356,17 +378,24 @@
 
             if(singlePostId) window.location.href = window.location.pathname; 
             
-            if (cat === 'reported') {
-                document.getElementById("badge-posts").classList.add("hidden"); 
-                document.getElementById("mob-badge-posts").classList.add("hidden"); 
-                loadReported();
-            } else if (cat === 'reported_users') {
-                document.getElementById("badge-users").classList.add("hidden"); 
-                document.getElementById("mob-badge-users").classList.add("hidden"); 
-                loadReportedUsers();
+            const sidebar = document.getElementById("sidebar-box");
+
+            if (cat === 'reported' || cat === 'reported_users') {
+                sidebar.classList.add("hidden"); // Hide Top 10 for Admin Tabs
+                
+                if(cat === 'reported') {
+                    document.getElementById("badge-posts").classList.add("hidden"); 
+                    document.getElementById("mob-badge-posts").classList.add("hidden"); 
+                    loadReported();
+                } else {
+                    document.getElementById("badge-users").classList.add("hidden"); 
+                    document.getElementById("mob-badge-users").classList.add("hidden"); 
+                    loadReportedUsers();
+                }
             } else {
+                sidebar.classList.remove("hidden"); // Show Top 10 for Main Tabs
                 initialLoad();
-                loadTop10();
+                loadTop10(); // This automatically fetches Top 10 based on currentCategory!
             }
         }
         
@@ -529,7 +558,7 @@
                 return `
                     <div class="post" id="post-${post.id}">
                         <div class="meta">
-                            <span><strong>${authorName}</strong> • ${new Date(post.created_at * 1000).toLocaleDateString()}</span>
+                            <span><strong>${authorName}</strong>${authorName}</strong> • ${formatTime(post.created_at)}</span>
                             <div style="display:flex; gap:5px;">
                                 ${isAdmin && currentCategory === 'reported' ? `
                                     <button class="delete-btn" style="background:#6b7280;" onclick="dismissPostReport(${post.id})">IGNORE</button>
@@ -555,7 +584,7 @@
                             <div id="reply-list-${post.id}">
                                 ${post.replies && post.replies.length > 0 ? post.replies.map(r => `
                                     <div class="reply-item">
-                                        <span style="font-weight:bold; color:var(--secondary-text);">${r.display_name || 'User'}:</span> ${r.content}
+                                        <span style="font-weight:bold; color:var(--secondary-text);">${r.display_name || 'User'} • <span style="font-weight:normal; font-size:0.85em;">${formatTime(r.created_at)}</span>:</span> ${r.content}
                                         <div class="action-bar" style="margin-top:5px; font-size:0.8em;">
                                             <button id="like-reply-${r.id}" class="vote-btn" onclick="vote(${r.id}, 'like', 'reply')">👍 ${r.likes || 0}</button>
                                             <button id="dislike-reply-${r.id}" class="vote-btn" onclick="vote(${r.id}, 'dislike', 'reply')">👎 ${r.dislikes || 0}</button>
@@ -716,6 +745,47 @@
             localStorage.clear(); 
             location.reload(); 
         }
+
+
+        let currentAdminMsgTime = 0;
+        
+        async function fetchAdminMessage() {
+            try {
+                const res = await fetch(`${API_URL}/admin-message`);
+                const data = await res.json();
+                currentAdminMsgTime = data.time;
+                
+                document.getElementById("admin-msg-display").innerText = data.text || "No current announcements.";
+                
+                const lastSeen = parseInt(localStorage.getItem("last_seen_msg")) || 0;
+                if (data.time > lastSeen && data.text.trim() !== "") {
+                    document.getElementById("badge-msg").classList.remove("hidden");
+                    document.getElementById("mob-badge-msg").classList.remove("hidden");
+                }
+            } catch(e) {}
+        }
+
+        function openMsgModal() {
+            openModal('msg-modal');
+            document.getElementById("badge-msg").classList.add("hidden");
+            document.getElementById("mob-badge-msg").classList.add("hidden");
+            localStorage.setItem("last_seen_msg", currentAdminMsgTime); // Mark as seen
+            
+            if (isAdmin) document.getElementById("admin-msg-editor").classList.remove("hidden");
+        }
+
+        async function saveAdminMessage() {
+            const text = document.getElementById("admin-msg-input").value;
+            await fetch(`${API_URL}/admin-message`, {
+                method: "POST", headers: {"Authorization": token, "Content-Type": "application/json"},
+                body: JSON.stringify({text})
+            });
+            alert("Announcement posted to all users!");
+            document.getElementById("admin-msg-input").value = "";
+            fetchAdminMessage();
+            closeModals();
+        }
+        
     </script>
 </body>
 </html>
