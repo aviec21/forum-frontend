@@ -177,6 +177,7 @@
                     <button id="btn-bakwaas" class="nav-btn" onclick="switchCategory('bakwaas')">🤪 Bakwaas</button>
                     <button id="btn-reported" class="nav-btn hidden" onclick="switchCategory('reported')">🚨 Posts <span id="badge-posts" class="badge hidden">0</span></button>
                     <button id="btn-reported-users" class="nav-btn hidden" onclick="switchCategory('reported_users')">👥 Users <span id="badge-users" class="badge hidden">0</span></button>
+                    <button id="btn-admin-announce" class="nav-btn hidden" onclick="openMsgModal()">📢 Announce</button>
                 </div>
                 <div class="header-icons">
                     <button class="icon-btn" title="About Us" onclick="openModal('about-modal')">ℹ️</button>
@@ -202,6 +203,7 @@
             <button id="mob-btn-bakwaas" class="mob-nav-btn" onclick="switchCategory('bakwaas')">🤪 Bakwaas</button>
             <button id="mob-btn-reported" class="mob-nav-btn hidden" onclick="switchCategory('reported')">🚨 Reported Posts <span id="mob-badge-posts" class="badge hidden">0</span></button>
             <button id="mob-btn-reported-users" class="mob-nav-btn hidden" onclick="switchCategory('reported_users')">👥 Reported Users <span id="mob-badge-users" class="badge hidden">0</span></button>
+            <button id="mob-btn-admin-announce" class="mob-nav-btn hidden" onclick="toggleMobileMenu(); openMsgModal()">📢 Announce</button>
             
             <hr style="border:0; border-top:1px solid var(--border-color); margin:15px 0;">
             
@@ -243,7 +245,7 @@
 
     <script>
         const API_URL = "https://dry-haze-494a.agiri2016.workers.dev/api"; 
-        const formatTime = (ts) => ts ? new Date(ts * 1000).toLocaleString([], { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : "Just now";
+        const formatTime = (ts) => ts ? new Date(ts * 1000).toLocaleString([], { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : "";
         
         let token = localStorage.getItem("anon_token");
         let myUsername = localStorage.getItem("my_username") || "Unknown";
@@ -269,12 +271,16 @@
             fetchAdminMessage();
             
             if (isAdmin) {
-                // Desktop
+                // Show Admin Tabs
                 document.getElementById("btn-reported").classList.remove("hidden");
                 document.getElementById("btn-reported-users").classList.remove("hidden");
-                // Mobile
+                document.getElementById("btn-admin-announce").classList.remove("hidden"); // NEW
+                
                 document.getElementById("mob-btn-reported").classList.remove("hidden");
                 document.getElementById("mob-btn-reported-users").classList.remove("hidden");
+                document.getElementById("mob-btn-admin-announce").classList.remove("hidden"); // NEW
+                
+                // Check for reported content badges
                 fetchAdminStats(); 
             }
 
@@ -558,7 +564,7 @@
                 return `
                     <div class="post" id="post-${post.id}">
                         <div class="meta">
-                            <span><strong>${authorName}</strong>${authorName}</strong> • ${formatTime(post.created_at)}</span>
+                            <span><strong>${authorName}</strong> • ${formatTime(post.created_at)}</span>
                             <div style="display:flex; gap:5px;">
                                 ${isAdmin && currentCategory === 'reported' ? `
                                     <button class="delete-btn" style="background:#6b7280;" onclick="dismissPostReport(${post.id})">IGNORE</button>
@@ -584,7 +590,7 @@
                             <div id="reply-list-${post.id}">
                                 ${post.replies && post.replies.length > 0 ? post.replies.map(r => `
                                     <div class="reply-item">
-                                        <span style="font-weight:bold; color:var(--secondary-text);">${r.display_name || 'User'} • <span style="font-weight:normal; font-size:0.85em;">${formatTime(r.created_at)}</span>:</span> ${r.content}
+                                        <span style="font-weight:bold; color:var(--secondary-text);">${r.display_name || 'LegacyUser'} ${r.created_at ? `<span style="font-weight:normal; font-size:0.85em;">• ${formatTime(r.created_at)}</span>` : ''}:</span> ${r.content}
                                         <div class="action-bar" style="margin-top:5px; font-size:0.8em;">
                                             <button id="like-reply-${r.id}" class="vote-btn" onclick="vote(${r.id}, 'like', 'reply')">👍 ${r.likes || 0}</button>
                                             <button id="dislike-reply-${r.id}" class="vote-btn" onclick="vote(${r.id}, 'dislike', 'reply')">👎 ${r.dislikes || 0}</button>
@@ -667,7 +673,7 @@
             const myUserId = token || "Me";
             const newHTML = `
                 <div class="reply-item" style="background-color:rgba(37, 99, 235, 0.1);">
-                    <span style="font-weight:bold; color:var(--secondary-text);">User ${myUserId}:</span> ${content}
+                    <span style="font-weight:bold; color:var(--secondary-text);">${myUsername} <span style="font-weight:normal; font-size:0.85em;">• Just now</span>:</span> ${content}
                     <div class="action-bar" style="margin-top:5px; font-size:0.8em;">
                         <button id="like-reply-${data.id}" class="vote-btn" onclick="vote(${data.id}, 'like', 'reply')">👍 0</button>
                         <button id="dislike-reply-${data.id}" class="vote-btn" onclick="vote(${data.id}, 'dislike', 'reply')">👎 0</button>
