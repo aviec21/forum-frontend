@@ -283,10 +283,12 @@
             }
         
             if(singlePostId) window.location.href = window.location.pathname; 
-            
+    
             if (cat === 'reported') {
+                document.getElementById("badge-posts").classList.add("hidden"); // Hide badge
                 loadReported();
             } else if (cat === 'reported_users') {
+                document.getElementById("badge-users").classList.add("hidden"); // Hide badge
                 loadReportedUsers();
             } else {
                 initialLoad();
@@ -410,10 +412,13 @@
                 <div class="post">
                     <div class="meta" style="font-size:1.1em; color:var(--text-color); display:flex; justify-content:space-between; align-items:center;">
                         <strong>👤 ${u.reported_username}</strong>
-                        ${u.is_banned ? 
-                            `<span style="color:#dc2626; font-weight:bold;">(BANNED)</span>` : 
-                            `<button class="ban-btn" style="background:#000; color:#fff; padding:5px 10px; border-radius:4px; cursor:pointer;" onclick="adminBanUser('${u.reported_username}')">BAN USER</button>`
-                        }
+                        <div>
+                            <button class="ban-btn" style="background:#6b7280; color:#fff; padding:5px 10px; border-radius:4px; cursor:pointer;" onclick="dismissUserReport('${u.reported_username}')">IGNORE</button>
+                            ${u.is_banned ? 
+                                `<span style="color:#dc2626; font-weight:bold; margin-left:5px;">(BANNED)</span>` : 
+                                `<button class="ban-btn" style="background:#000; color:#fff; padding:5px 10px; border-radius:4px; cursor:pointer; margin-left:5px;" onclick="adminBanUser('${u.reported_username}')">BAN</button>`
+                            }
+                        </div>
                     </div>
                     <div style="background:#fee2e2; color:#dc2626; padding:10px; border-radius:4px; font-size:0.9em; margin-top:10px; border:1px solid #f87171;">
                         <strong>🚨 Reported ${u.report_count} times:</strong> ${u.report_reasons}
@@ -453,6 +458,7 @@
                             <span><strong>${authorName}</strong> • ${new Date(post.created_at * 1000).toLocaleDateString()}</span>
                             <div style="display:flex; gap:5px;">
                                 ${isAdmin && currentCategory === 'reported' ? `
+                                    <button class="delete-btn" style="background:#6b7280;" onclick="dismissPostReport(${post.id})">IGNORE</button>
                                     <button class="delete-btn" onclick="deletePost(${post.id})">DELETE POST</button>
                                 ` : ''}
                             </div>
@@ -584,15 +590,12 @@
         async function deletePost(postId) {
             if(!confirm("ADMIN: Permanently delete this post?")) return;
             const res = await fetch(`${API_URL}/delete`, { 
-                method: "POST", 
-                headers: { "Authorization": token, "Content-Type": "application/json" }, 
-                body: JSON.stringify({ postId }) 
+                method: "POST", headers: { "Authorization": token, "Content-Type": "application/json" }, body: JSON.stringify({ postId }) 
             });
             if(res.ok) { 
                 document.getElementById(`post-${postId}`).remove(); 
-            } else {
-                alert("Failed to delete");
-            }
+                if (currentCategory === 'reported') fetchAdminStats(); // Recalculate badges
+            } else { alert("Failed to delete"); }
         }
         
         // --- AUTH ---
@@ -615,6 +618,24 @@
                 localStorage.setItem("my_username", data.username); // <-- ADD THIS LINE!
                 location.reload(); 
             } else { alert("Incorrect OTP"); }
+        }
+
+        async function dismissPostReport(postId) {
+            if(!confirm("Clear this report? The post will remain visible on the forum.")) return;
+            await fetch(`${API_URL}/admin/dismiss-post`, { 
+                method: "POST", headers: { "Authorization": token, "Content-Type": "application/json" }, body: JSON.stringify({ postId }) 
+            });
+            loadReported(); // Refresh list
+            fetchAdminStats(); // Update badge math
+        }
+
+        async function dismissUserReport(username) {
+            if(!confirm("Clear this report? The user will NOT be banned.")) return;
+            await fetch(`${API_URL}/admin/dismiss-user`, { 
+                method: "POST", headers: { "Authorization": token, "Content-Type": "application/json" }, body: JSON.stringify({ username }) 
+            });
+            loadReportedUsers(); // Refresh list
+            fetchAdminStats(); // Update badge math
         }
         
         function logout() { 
