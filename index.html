@@ -224,6 +224,16 @@
         let token = localStorage.getItem("anon_token");
         let myUsername = localStorage.getItem("my_username") || "Unknown";
         let isAdmin = localStorage.getItem("is_admin") === "true"; 
+        // --- NEW: 24-HOUR EXPIRATION CHECK ---
+        const loginTimestamp = localStorage.getItem("login_timestamp");
+        if (token && loginTimestamp) {
+            // 86400000 milliseconds = exactly 24 hours
+            if (Date.now() - parseInt(loginTimestamp) > 86400000) {
+                localStorage.clear(); // Wipe their local data
+                token = null; // Force the app to show the login screen
+            }
+        }
+        
         let currentCategory = "serious";
         let currentOffset = 0;
         let currentSearch = "";
@@ -286,8 +296,14 @@
                 localStorage.setItem("anon_token", data.token);
                 localStorage.setItem("is_admin", data.isAdmin); 
                 localStorage.setItem("my_username", data.username); 
+                
+                // NEW: Record the exact time of login
+                localStorage.setItem("login_timestamp", Date.now()); 
+                
                 location.reload(); 
-            } else { alert("Incorrect OTP"); }
+            } else { 
+                alert("Incorrect OTP"); 
+            }
         }
 
         function logout() { 
