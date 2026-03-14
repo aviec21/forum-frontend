@@ -171,14 +171,14 @@
                 <button class="icon-btn" onclick="toggleMobileMenu()">✕</button>
             </div>
 
-            <button class="mob-nav-btn" onclick="toggleMobileMenu(); toggleDropdown('announce-drop');">📢 Announcements</button>
             <button id="mob-btn-serious" class="mob-nav-btn active" onclick="switchCategory('serious')">🎓 Serious</button>
             <button id="mob-btn-bakwaas" class="mob-nav-btn" onclick="switchCategory('bakwaas')">🤪 Bakwaas</button>
             <button id="mob-btn-reported" class="mob-nav-btn hidden" onclick="switchCategory('reported')">🚨 Reported Posts <span id="mob-badge-posts" class="badge hidden">0</span></button>
             <button id="mob-btn-reported-users" class="mob-nav-btn hidden" onclick="switchCategory('reported_users')">👥 Reported Users <span id="mob-badge-users" class="badge hidden">0</span></button>
             
             <hr style="border:0; border-top:1px solid var(--border-color); margin:15px 0;">
-            
+
+            <button class="mob-nav-btn" onclick="toggleMobileMenu(); toggleDropdown('announce-drop');" style="display:block; width:100%; text-align:left;">📢 Announcements</button>
             <a href="?page=about" class="mob-nav-btn" style="text-decoration:none; display:block;">ℹ️ About Us</a>
             <a href="?page=profile" class="mob-nav-btn" style="text-decoration:none; display:block;">👤 My Profile</a>
             <a href="?page=report" class="mob-nav-btn" style="text-decoration:none; display:block;">🚩 Report a User</a>
