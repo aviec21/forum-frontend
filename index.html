@@ -178,7 +178,8 @@
             
             <hr style="border:0; border-top:1px solid var(--border-color); margin:15px 0;">
 
-            <button class="mob-nav-btn" onclick="toggleMobileMenu(); toggleDropdown('announce-drop');" style="display:block; width:100%; text-align:left;">📢 Announcements</button>
+            <!-- <button class="mob-nav-btn" onclick="toggleMobileMenu(); toggleDropdown('announce-drop');" style="display:block; width:100%; text-align:left;">📢 Announcements</button> -->
+            <button class="mob-nav-btn" onclick="event.stopPropagation(); toggleMobileMenu(); toggleDropdown('announce-drop'); markAnnouncementsRead();" style="display:block; width:100%; text-align:left;">📢 Announcements</button>
             <a href="?page=about" class="mob-nav-btn" style="text-decoration:none; display:block;">ℹ️ About Us</a>
             <a href="?page=profile" class="mob-nav-btn" style="text-decoration:none; display:block;">👤 My Profile</a>
             <a href="?page=report" class="mob-nav-btn" style="text-decoration:none; display:block;">🚩 Report a User</a>
